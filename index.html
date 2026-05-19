@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.25</title>
+    <title>ZONEDRAW v12.04.28</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -470,7 +470,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.25</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.28</span></div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
 </div>
@@ -1000,69 +1000,200 @@
     }
 
     function runDraw() {
-        appState.sort((a,b) => {
-            let getP = (e) => { let hasA = e.anglers.some(ang => ang.mobility); if(e.isTeam && hasA) return 3; if(e.isTeam) return 2; return 1; };
-            return getP(b) - getP(a);
+        // Priority Queue Sorting
+        appState.sort((a, b) => {
+            let getPriority = (entry) => { 
+                let hasA = entry.anglers.some(ang => ang.mobility); 
+                if (entry.isTeam && hasA) {
+                    return 4; // Priority 1: Teams with [A]
+                }
+                if (!entry.isTeam && hasA) {
+                    return 3; // Priority 2: Solos with [A]
+                }
+                if (entry.isTeam) {
+                    return 2; // Priority 3: Standard Teams
+                }
+                return 1; // Priority 4: Standard Solos
+            };
+            return getPriority(b) - getPriority(a);
         });
+
         const s1A = (document.getElementById('accPegs1_a').value || '').match(/\d+/g)?.map(Number) || [];
         const s2A = (document.getElementById('accPegs2_a').value || '').match(/\d+/g)?.map(Number) || [];
         const sAnch = (document.getElementById('accPegsAnchor').value || '').match(/\d+/g)?.map(Number) || [];
         const ancZ = document.getElementById('anchorZoneSelect').value;
-        let tot = 0; appState.forEach(e => tot += e.isTeam ? 4 : 1);
-        let zSize = Math.max(Math.ceil(tot/4), 1); currentZoneSize = zSize;
-        let p1 = zones.map((z, idx) => { let p = []; for(let i = 1; i <= zSize; i++) p.push((idx*zSize)+i); p.sort(() => Math.random() - 0.5); return {z, p}; });
-        let p2 = zones.map((z, idx) => { let p = []; for(let i = 1; i <= zSize; i++) p.push((idx*zSize)+i); p.sort(() => Math.random() - 0.5); return {z, p}; });
+        
+        let tot = 0; 
+        appState.forEach(e => {
+            tot += e.isTeam ? 4 : 1;
+        });
+        
+        let zSize = Math.max(Math.ceil(tot / 4), 1); 
+        currentZoneSize = zSize;
+        
+        let p1 = zones.map((z, idx) => { 
+            let p = []; 
+            for(let i = 1; i <= zSize; i++) {
+                p.push((idx * zSize) + i);
+            }
+            p.sort(() => Math.random() - 0.5); 
+            return {z, p}; 
+        });
+        
+        let p2 = zones.map((z, idx) => { 
+            let p = []; 
+            for(let i = 1; i <= zSize; i++) {
+                p.push((idx * zSize) + i);
+            }
+            p.sort(() => Math.random() - 0.5); 
+            return {z, p}; 
+        });
         
         const pull = (z, d2, mob) => {
-            const pools = d2 ? p2 : p1; const zI = zones.indexOf(z);
-            if(mobilityMode === 'B' && mob && z === ancZ) { let sI = pools[zI].p.findIndex(p => sAnch.includes(p)); if(sI > -1) return pools[zI].p.splice(sI, 1)[0]; } 
-            else if(mobilityMode === 'A') {
+            const pools = d2 ? p2 : p1; 
+            const zI = zones.indexOf(z);
+            
+            if (mobilityMode === 'B') {
+                if (mob && z === ancZ) { 
+                    let sI = pools[zI].p.findIndex(p => sAnch.includes(p)); 
+                    if(sI > -1) {
+                        return pools[zI].p.splice(sI, 1)[0]; 
+                    }
+                }
+            } else if (mobilityMode === 'A') {
                 const sL = d2 ? s2A : s1A;
-                if(mob) { let sI = pools[zI].p.findIndex(p => sL.includes(p)); if(sI > -1) return pools[zI].p.splice(sI, 1)[0]; } 
-                else if(sL.length) { let nI = pools[zI].p.findIndex(p => !sL.includes(p)); if(nI > -1) return pools[zI].p.splice(nI, 1)[0]; }
+                if (mob) { 
+                    let sI = pools[zI].p.findIndex(p => sL.includes(p)); 
+                    if(sI > -1) {
+                        return pools[zI].p.splice(sI, 1)[0]; 
+                    }
+                } else if (sL.length > 0) { 
+                    // Hard Reserve: Standard anglers avoid safe pegs
+                    let nI = pools[zI].p.findIndex(p => !sL.includes(p)); 
+                    if(nI > -1) {
+                        return pools[zI].p.splice(nI, 1)[0]; 
+                    }
+                }
             }
             return pools[zI].p.pop() || 99;
         };
-        const canS = (z, d, mob) => { if(!mob) return true; let sL = d === 1 ? s1A : s2A; return (d === 1 ? p1 : p2)[zones.indexOf(z)].p.some(p => sL.includes(p)); };
+        
+        const canS = (z, d, mob) => { 
+            if(!mob) return true; 
+            let sL = d === 1 ? s1A : s2A; 
+            return (d === 1 ? p1 : p2)[zones.indexOf(z)].p.some(p => sL.includes(p)); 
+        };
         
         appState.forEach(e => {
-            if(e.isTeam) {
+            if (e.isTeam) {
                 let hasA = e.anglers.some(a => a.mobility);
-                if(mobilityMode === 'B' && hasA) {
-                    let d1Z = [], d2Z = []; e.anglers.forEach(a => { if(a.mobility) { d1Z.push(ancZ); d2Z.push(ancZ); } else { d1Z.push(undefined); d2Z.push(undefined); } });
-                    e.anglers.forEach((a, i) => { if(!a.mobility) { let av = zones.filter(z => z !== ancZ && !d1Z.includes(z)); d1Z[i] = av[0]; } });
+                
+                if (mobilityMode === 'B' && hasA) {
+                    let d1Z = [];
+                    let d2Z = []; 
+                    e.anglers.forEach(a => { 
+                        if(a.mobility) { 
+                            d1Z.push(ancZ); 
+                            d2Z.push(ancZ); 
+                        } else { 
+                            d1Z.push(undefined); 
+                            d2Z.push(undefined); 
+                        } 
+                    });
+                    
+                    e.anglers.forEach((a, i) => { 
+                        if(!a.mobility) { 
+                            let av = zones.filter(z => z !== ancZ && !d1Z.includes(z)); 
+                            d1Z[i] = av[0]; 
+                        } 
+                    });
+                    
                     let sI = e.anglers.map((a, i) => !a.mobility ? i : -1).filter(i => i > -1);
-                    d2Z[sI[0]] = d1Z[sI[1]]; d2Z[sI[1]] = d1Z[sI[2]]; d2Z[sI[2]] = d1Z[sI[0]];
-                    e.anglers.forEach((a, i) => { a.z1 = d1Z[i]; a.p1 = pull(a.z1, 0, a.mobility); a.z2 = d2Z[i]; a.p2 = pull(a.z2, 1, a.mobility); });
+                    d2Z[sI[0]] = d1Z[sI[1]]; 
+                    d2Z[sI[1]] = d1Z[sI[2]]; 
+                    d2Z[sI[2]] = d1Z[sI[0]];
+                    
+                    e.anglers.forEach((a, i) => { 
+                        a.z1 = d1Z[i]; 
+                        a.p1 = pull(a.z1, 0, a.mobility); 
+                        a.z2 = d2Z[i]; 
+                        a.p2 = pull(a.z2, 1, a.mobility); 
+                    });
+                    
                 } else if (mobilityMode === 'A' && hasA) {
-                    let d1Z = [...zones].sort(() => Math.random() - 0.5); let d2Z = [d1Z[1], d1Z[2], d1Z[3], d1Z[0]];
-                    let mI = e.anglers.findIndex(a => a.mobility); let best = 0;
-                    for(let i = 0; i < 4; i++) { if(canS(d1Z[i], 1, 1) && canS(d2Z[i], 2, 1)) { best = i; break; } }
-                    let col = [0, 1, 2, 3]; [col[mI], col[best]] = [col[best], col[mI]];
-                    e.anglers.forEach((a, i) => { a.z1 = d1Z[col[i]]; a.p1 = pull(a.z1, 0, a.mobility); a.z2 = d2Z[col[i]]; a.p2 = pull(a.z2, 1, a.mobility); });
+                    let d1Z = [...zones].sort(() => Math.random() - 0.5); 
+                    let d2Z = [d1Z[1], d1Z[2], d1Z[3], d1Z[0]];
+                    let mI = e.anglers.findIndex(a => a.mobility); 
+                    let best = 0;
+                    let foundSafe = false;
+                    
+                    for (let i = 0; i < 4; i++) { 
+                        if (canS(d1Z[i], 1, 1) && canS(d2Z[i], 2, 1)) { 
+                            best = i; 
+                            foundSafe = true;
+                            break; 
+                        } 
+                    }
+                    
+                    if (!foundSafe) {
+                        // Double-Zone Failsafe Trigger
+                        for (let i = 0; i < 4; i++) {
+                            if (canS(d1Z[i], 1, 1)) {
+                                best = i;
+                                break;
+                            }
+                        }
+                        let targetZoneDay2 = d2Z.find(z => canS(z, 2, 1));
+                        if (targetZoneDay2) {
+                            let targetIndex = d2Z.indexOf(targetZoneDay2);
+                            let temp = d2Z[best];
+                            d2Z[best] = d2Z[targetIndex];
+                            d2Z[targetIndex] = temp;
+                        }
+                    }
+
+                    let col = [0, 1, 2, 3]; 
+                    [col[mI], col[best]] = [col[best], col[mI]];
+                    
+                    e.anglers.forEach((a, i) => { 
+                        a.z1 = d1Z[col[i]]; 
+                        a.p1 = pull(a.z1, 0, a.mobility); 
+                        a.z2 = d2Z[col[i]]; 
+                        a.p2 = pull(a.z2, 1, a.mobility); 
+                    });
+                    
                 } else {
-                    let d1Z = [...zones].sort(() => Math.random() - 0.5); let d2Z = [d1Z[1], d1Z[2], d1Z[3], d1Z[0]];
-                    e.anglers.forEach((a, i) => { a.z1 = d1Z[i]; a.p1 = pull(a.z1, 0, 0); a.z2 = d2Z[i]; a.p2 = pull(a.z2, 1, 0); });
+                    let d1Z = [...zones].sort(() => Math.random() - 0.5); 
+                    let d2Z = [d1Z[1], d1Z[2], d1Z[3], d1Z[0]];
+                    
+                    e.anglers.forEach((a, i) => { 
+                        a.z1 = d1Z[i]; 
+                        a.p1 = pull(a.z1, 0, 0); 
+                        a.z2 = d2Z[i]; 
+                        a.p2 = pull(a.z2, 1, 0); 
+                    });
                 }
             } else {
                 let a = e.anglers[0]; 
-                if(mobilityMode === 'B' && a.mobility) { a.z1 = a.z2 = ancZ; } else { 
-                    let av = zones.filter(z => p1[zones.indexOf(z)].p.length > 0); a.z1 = av[Math.floor(Math.random() * av.length)]; 
-                    let av2 = zones.filter(z => z !== a.z1 && p2[zones.indexOf(z)].p.length > 0); if(av2.length === 0) av2 = zones.filter(z => p2[zones.indexOf(z)].p.length > 0);
+                if (mobilityMode === 'B' && a.mobility) { 
+                    a.z1 = ancZ;
+                    a.z2 = ancZ; 
+                } else { 
+                    let av = zones.filter(z => p1[zones.indexOf(z)].p.length > 0); 
+                    a.z1 = av[Math.floor(Math.random() * av.length)]; 
+                    
+                    let av2 = zones.filter(z => z !== a.z1 && p2[zones.indexOf(z)].p.length > 0); 
+                    if (av2.length === 0) {
+                        av2 = zones.filter(z => p2[zones.indexOf(z)].p.length > 0);
+                    }
                     a.z2 = av2[Math.floor(Math.random() * av2.length)]; 
                 }
-                a.p1 = pull(a.z1, 0, a.mobility); a.p2 = pull(a.z2, 1, a.mobility);
+                a.p1 = pull(a.z1, 0, a.mobility); 
+                a.p2 = pull(a.z2, 1, a.mobility);
             }
         });
         displayDraw();
     }
-
-    function isPegSafe(p, d) { 
-        if(mobilityMode === 'B') return (document.getElementById('accPegsAnchor').value.match(/\d+/g) || []).includes(String(p)); 
-        return (document.getElementById(d === 1 ? 'accPegs1_a' : 'accPegs2_a').value.match(/\d+/g) || []).includes(String(p)); 
-    }
-
-    function toggleExportMenu() { const m = document.getElementById('exportMenu'); m.style.display = m.style.display === 'none' ? 'flex' : 'none'; }
 
     function toggleSwapMode() { isSwapMode = !isSwapMode; swapObj1 = null; document.getElementById('swapPrompt').style.display = isSwapMode ? 'block' : 'none'; displayDraw(); }
 
@@ -1105,7 +1236,7 @@
                 if (!a.z1 || a.p1 === 99 || a.p1 === undefined) errors.push(`GHOST PEG: '${aN}' has an invalid peg on DAY 1.`);
                 if (matchDays === 2 && (!a.z2 || a.p2 === 99 || a.p2 === undefined)) errors.push(`GHOST PEG: '${aN}' has an invalid peg on DAY 2.`);
                 
-                if (matchDays === 2 && a.z1 === a.z2 && !(mobilityMode === 'B' && a.mobility)) {
+                if (matchDays === 2 && a.z1 === a.z2 && !a.mobility) {
                     errors.push(`DOUBLE ZONE: '${aN}' fishes ${a.z1} both days.`);
                 }
                 
@@ -1121,6 +1252,13 @@
         });
         return [...new Set(errors)];
     }
+
+    function isPegSafe(p, d) { 
+        if(mobilityMode === 'B') return (document.getElementById('accPegsAnchor').value.match(/\d+/g) || []).includes(String(p)); 
+        return (document.getElementById(d === 1 ? 'accPegs1_a' : 'accPegs2_a').value.match(/\d+/g) || []).includes(String(p)); 
+    }
+
+    function toggleExportMenu() { const m = document.getElementById('exportMenu'); m.style.display = m.style.display === 'none' ? 'flex' : 'none'; }
 
     function displayDraw() {
         document.querySelectorAll('body > div[id$="Section"]').forEach(s => s.style.display = 'none');
