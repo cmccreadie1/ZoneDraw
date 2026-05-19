@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.28</title>
+    <title>ZONEDRAW v12.04.29</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -470,7 +470,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.28</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.29</span></div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
 </div>
@@ -617,7 +617,7 @@
             <button class="btn-action-outline" id="mergeBtn" style="display:none; border-color:#10b981; color:#10b981; padding: 20px 40px; height: fit-content;" onclick="mergeSelected()">LINK TEAM (4)</button>
             
             <div id="viewDrawContainer" style="display:none; flex-direction:column; align-items:center; max-width: 280px;">
-                <button class="btn-action" id="viewDrawBtn" onclick="displayDraw()" style="background:#10b981; border-color:#10b981; font-size: 16px; padding: 20px 40px; width: 100%;">✅ SAVE & RETURN</button>
+                <button class="btn-action" id="viewDrawBtn" onclick="displayDraw()" style="background:#10b981; border-color:#10b981; font-size: 16px; padding: 20px 40px; width: 100%;">✅ SAVE EDITS & RETURN</button>
             </div>
 
             <div id="processDrawContainer" style="display:flex; flex-direction:column; align-items:center;">
@@ -658,12 +658,14 @@
 
 <script>
     const zones = ['RED', 'YELLOW', 'GREEN', 'BLUE'];
+    
     const zColors = { 
         'RED': 'var(--red-color)', 
         'YELLOW': 'var(--yellow-color)', 
         'GREEN': 'var(--green-color)', 
         'BLUE': 'var(--blue-color)' 
     };
+    
     const zSofts = { 
         'RED': 'var(--red-soft)', 
         'YELLOW': 'var(--yellow-soft)', 
@@ -671,9 +673,7 @@
         'BLUE': 'var(--blue-soft)' 
     };
     
-    // IGNITION LOCK
     let isAppReady = false; 
-
     let appState = []; 
     let matchDays = 2;
     let currentZoneSize = 0; 
@@ -682,9 +682,10 @@
     let mobilityMode = 'A'; 
     let accEnabled = false; 
 
-    const genId = () => 'id_' + Math.random().toString(36).substr(2, 9);
+    const genId = () => {
+        return 'id_' + Math.random().toString(36).substr(2, 9);
+    };
 
-    // THE HEARTBEAT AUTO-SAVE ENGINE
     setInterval(() => {
         if (isAppReady) {
             persistState();
@@ -692,7 +693,9 @@
     }, 2000);
 
     function persistState() {
-        if (!isAppReady) return; 
+        if (!isAppReady) {
+            return; 
+        }
 
         const stateObj = { 
             title: document.getElementById('matchTitle').value || '',
@@ -706,13 +709,18 @@
             safePegsAnchor: document.getElementById('accPegsAnchor').value,
             anchorZone: document.getElementById('anchorZoneSelect').value
         };
+        
         localStorage.setItem('zonedraw_current_state_v12', JSON.stringify(stateObj));
     }
 
     function formatPegs(el) {
         let val = el.value;
         let nums = val.match(/\d+/g);
-        el.value = nums ? nums.join(', ') : '';
+        if (nums) {
+            el.value = nums.join(', ');
+        } else {
+            el.value = '';
+        }
     }
 
     function toggleAccPanel() {
@@ -723,7 +731,8 @@
     function applyAccToggleUI() {
         const panel = document.getElementById('accPanelWrapper');
         const btn = document.getElementById('accToggleBtn');
-        if(accEnabled) {
+        
+        if (accEnabled) {
             panel.style.display = 'flex';
             btn.innerText = 'ACCESSIBILITY MODE [ON]';
             btn.style.background = 'var(--accent)';
@@ -738,10 +747,18 @@
 
     function setMobilityMode(m) {
         mobilityMode = m;
+        
         document.getElementById('mobModeA').classList.toggle('active', m === 'A');
         document.getElementById('mobModeB').classList.toggle('active', m === 'B');
-        document.getElementById('modeASetup').style.display = m === 'A' ? 'flex' : 'none';
-        document.getElementById('modeBSetup').style.display = m === 'B' ? 'flex' : 'none';
+        
+        if (m === 'A') {
+            document.getElementById('modeASetup').style.display = 'flex';
+            document.getElementById('modeBSetup').style.display = 'none';
+        } else {
+            document.getElementById('modeASetup').style.display = 'none';
+            document.getElementById('modeBSetup').style.display = 'flex';
+        }
+        
         checkTeamClash();
     }
 
@@ -767,12 +784,16 @@
 
     function executePegWipe() {
         closeRedrawModal();
+        
         appState.forEach(e => {
             e.anglers.forEach(a => {
-                a.z1 = undefined; a.p1 = undefined;
-                a.z2 = undefined; a.p2 = undefined;
+                a.z1 = undefined; 
+                a.p1 = undefined;
+                a.z2 = undefined; 
+                a.p2 = undefined;
             });
         });
+        
         handleAmend(false);
     }
 
@@ -781,10 +802,18 @@
         let txt = `REPORT: ${title}\nDATE: ${new Date().toLocaleString()}\n------------------------------\n\n`;
         
         appState.forEach(e => {
-            txt += `${e.isTeam ? "TEAM: " : "SOLO: "} ${e.tName || "UNNAMED"}\n`;
+            if (e.isTeam) {
+                txt += `TEAM: ${e.tName || "UNNAMED"}\n`;
+            } else {
+                txt += `SOLO: ${e.tName || "UNNAMED"}\n`;
+            }
+            
             e.anglers.forEach(a => { 
-                if(a.name) {
-                    txt += `  - ${a.name}${a.mobility ? ' [A]' : ''} | D1: ${a.z1} ${a.p1} | D2: ${a.z2 || '-'} ${a.p2 || '-'}\n`; 
+                if (a.name) {
+                    let accStr = a.mobility ? ' [A]' : '';
+                    let d1Str = `D1: ${a.z1} ${a.p1}`;
+                    let d2Str = `D2: ${a.z2 || '-'} ${a.p2 || '-'}`;
+                    txt += `  - ${a.name}${accStr} | ${d1Str} | ${d2Str}\n`; 
                 }
             });
             txt += "\n";
@@ -805,9 +834,15 @@
 
     function setDays(d) {
         matchDays = d;
+        
         document.getElementById('dayOpt1').classList.toggle('active', d === 1);
         document.getElementById('dayOpt2').classList.toggle('active', d === 2);
-        document.getElementById('day2PegsContainer').style.display = d === 2 ? 'block' : 'none';
+        
+        if (d === 2) {
+            document.getElementById('day2PegsContainer').style.display = 'block';
+        } else {
+            document.getElementById('day2PegsContainer').style.display = 'none';
+        }
     }
 
     function startNewDraw() {
@@ -817,6 +852,7 @@
         document.getElementById('accPegs1_a').value = '';
         document.getElementById('accPegs2_a').value = '';
         document.getElementById('accPegsAnchor').value = '';
+        
         appState = []; 
         currentZoneSize = 0;
         setMobilityMode('A'); 
@@ -824,7 +860,10 @@
         accEnabled = false;
         applyAccToggleUI();
         
-        document.querySelectorAll('body > div[id$="Section"]').forEach(s => s.style.display = 'none');
+        document.querySelectorAll('body > div[id$="Section"]').forEach(s => {
+            s.style.display = 'none';
+        });
+        
         document.getElementById('entrySection').style.display = 'block';
         document.getElementById('setupPanel').style.display = 'block';
         document.getElementById('editDrawBanner').style.display = 'none';
@@ -832,19 +871,34 @@
         document.getElementById('commandBar').style.display = 'none';
         
         updateTicker();
-        renderStateToScreen(); // THE VISUAL FLUSH - Wipes cards from setup screen
+        renderStateToScreen(); 
     }
 
     function bulkInit() {
         appState = [];
-        const t = parseInt(document.getElementById('initTeams').value) || 0;
-        const i = parseInt(document.getElementById('initIndivs').value) || 0;
+        
+        let tVal = document.getElementById('initTeams').value;
+        let iVal = document.getElementById('initIndivs').value;
+        
+        const t = parseInt(tVal) || 0;
+        const i = parseInt(iVal) || 0;
         
         for(let x = 0; x < t; x++) {
-            appState.push({ id: genId(), isTeam: true, tName: '', anglers: [{},{},{},{}] });
+            appState.push({ 
+                id: genId(), 
+                isTeam: true, 
+                tName: '', 
+                anglers: [{},{},{},{}] 
+            });
         }
+        
         for(let y = 0; y < i; y++) {
-            appState.push({ id: genId(), isTeam: false, tName: '', anglers: [{}] });
+            appState.push({ 
+                id: genId(), 
+                isTeam: false, 
+                tName: '', 
+                anglers: [{}] 
+            });
         }
         
         document.getElementById('initMatchBtn').style.display = 'none';
@@ -856,15 +910,27 @@
 
         setTimeout(() => {
             const firstInput = document.querySelector('#entryList input[type="text"]');
-            if (firstInput) { firstInput.focus(); }
+            if (firstInput) { 
+                firstInput.focus(); 
+            }
         }, 50);
     }
 
     function addNewStateItem(isTeam) {
-        if(isTeam) {
-            appState.push({ id: genId(), isTeam: true, tName: '', anglers: [{},{},{},{}] });
+        if (isTeam) {
+            appState.push({ 
+                id: genId(), 
+                isTeam: true, 
+                tName: '', 
+                anglers: [{},{},{},{}] 
+            });
         } else {
-            appState.push({ id: genId(), isTeam: false, tName: '', anglers: [{}] });
+            appState.push({ 
+                id: genId(), 
+                isTeam: false, 
+                tName: '', 
+                anglers: [{}] 
+            });
         }
         renderStateToScreen();
     }
@@ -872,26 +938,35 @@
     function toggleMobility(eId, aIdx) {
         const entry = appState.find(e => e.id === eId);
         if (entry) { 
-            entry.anglers[aIdx].mobility = entry.anglers[aIdx].mobility ? 0 : 1; 
+            if (entry.anglers[aIdx].mobility) {
+                entry.anglers[aIdx].mobility = 0;
+            } else {
+                entry.anglers[aIdx].mobility = 1;
+            }
             renderStateToScreen(); 
         }
     }
 
     function updateTeamName(id, val) {
         let entry = appState.find(e => e.id === id);
-        if(entry) { entry.tName = val.trim().toUpperCase(); }
+        if (entry) { 
+            entry.tName = val.trim().toUpperCase(); 
+        }
     }
 
     function updateAnglerName(id, aIdx, val) {
         let entry = appState.find(e => e.id === id);
-        if(entry && entry.anglers[aIdx]) {
+        if (entry && entry.anglers[aIdx]) {
             entry.anglers[aIdx].name = val.trim().toUpperCase();
             updateTicker();
         }
     }
 
     function updateDrawButtons() {
-        const hasDraw = appState.some(e => e.anglers.some(a => a.z1));
+        const hasDraw = appState.some(e => {
+            return e.anglers.some(a => a.z1);
+        });
+        
         const viewCont = document.getElementById('viewDrawContainer');
         const processCont = document.getElementById('processDrawContainer');
         
@@ -907,100 +982,247 @@
     function renderStateToScreen() {
         const tb = document.getElementById('entryTeamsBucket'); 
         tb.innerHTML = '';
+        
         const sb = document.getElementById('entrySolosBucket'); 
         sb.innerHTML = '';
         
         appState.forEach(entry => {
             const div = document.createElement('div');
-            div.className = 'zone-card' + (!entry.isTeam ? ' solo-card' : '');
+            
+            if (!entry.isTeam) {
+                div.className = 'zone-card solo-card';
+            } else {
+                div.className = 'zone-card';
+            }
+            
             div.dataset.id = entry.id;
             
-            let h = `<div class="zone-header"><span>${entry.isTeam ? 'TEAM' : 'SOLO'}</span><div style="display:flex; align-items:center;">`;
-            if(!entry.isTeam) { h += `<input type="checkbox" class="merge-cb" onchange="checkMerge()" tabindex="-1" style="width:20px; height:20px;">`; }
-            if(entry.isTeam) { h += `<button class="btn-tool" onclick="breakStateTeam('${entry.id}')" tabindex="-1" style="margin-left:12px;">🔗 UNLINK</button>`; } 
-            else { h += `<button onclick="deleteStateEntry('${entry.id}')" tabindex="-1" style="background:none; border:none; color:#ef4444; font-weight:900; font-size:24px; cursor:pointer; margin-left:12px;">×</button>`; }
+            let typeStr = entry.isTeam ? 'TEAM' : 'SOLO';
+            let h = `<div class="zone-header"><span>${typeStr}</span><div style="display:flex; align-items:center;">`;
+            
+            if (!entry.isTeam) { 
+                h += `<input type="checkbox" class="merge-cb" onchange="checkMerge()" tabindex="-1" style="width:20px; height:20px;">`; 
+            }
+            
+            if (entry.isTeam) { 
+                h += `<button class="btn-tool" onclick="breakStateTeam('${entry.id}')" tabindex="-1" style="margin-left:12px;">🔗 UNLINK</button>`; 
+            } else { 
+                h += `<button onclick="deleteStateEntry('${entry.id}')" tabindex="-1" style="background:none; border:none; color:#ef4444; font-weight:900; font-size:24px; cursor:pointer; margin-left:12px;">×</button>`; 
+            }
+            
             h += `</div></div>`;
             
-            if(entry.isTeam) {
+            if (entry.isTeam) {
                 h += `<label style="font-size:10px; opacity:0.6;">TEAM NAME</label>
                       <input type="text" class="t-name" value="${entry.tName}" oninput="updateTeamName('${entry.id}', this.value)" style="margin-bottom:12px;">`;
-                for(let i = 0; i < 4; i++) {
+                      
+                for (let i = 0; i < 4; i++) {
                     let mBg = entry.anglers[i].mobility ? 'var(--a-color)' : 'white';
                     let mColor = entry.anglers[i].mobility ? 'white' : 'var(--text)';
+                    
+                    let aName = entry.anglers[i].name || '';
+                    
                     h += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                            <input type="text" class="a-name-input" value="${entry.anglers[i].name || ''}" placeholder="ANGLER ${i+1}" oninput="updateAnglerName('${entry.id}', ${i}, this.value)">
+                            <input type="text" class="a-name-input" value="${aName}" placeholder="ANGLER ${i+1}" oninput="updateAnglerName('${entry.id}', ${i}, this.value)">
                             <button class="btn-tool" onclick="toggleMobility('${entry.id}', ${i})" tabindex="-1" style="padding:10px 14px; background:${mBg}; color:${mColor}; border-color:${mBg};">[A]</button>
                           </div>`;
                 }
             } else {
                 h += `<label style="font-size:10px; opacity:0.6;">SOLO NAME</label>`;
+                
                 let mBg = entry.anglers[0].mobility ? 'var(--a-color)' : 'white';
                 let mColor = entry.anglers[0].mobility ? 'white' : 'var(--text)';
+                
+                let aName = entry.anglers[0].name || '';
+                
                 h += `<div style="display:flex; align-items:center; gap:8px; margin-top:5px;">
-                        <input type="text" class="a-name-input" value="${entry.anglers[0].name || ''}" oninput="updateAnglerName('${entry.id}', 0, this.value)">
+                        <input type="text" class="a-name-input" value="${aName}" oninput="updateAnglerName('${entry.id}', 0, this.value)">
                         <button class="btn-tool" onclick="toggleMobility('${entry.id}', 0)" tabindex="-1" style="padding:10px 14px; background:${mBg}; color:${mColor}; border-color:${mBg};">[A]</button>
                       </div>`;
             }
+            
             div.innerHTML = h; 
-            if (entry.isTeam) tb.appendChild(div); else sb.appendChild(div);
+            
+            if (entry.isTeam) {
+                tb.appendChild(div);
+            } else {
+                sb.appendChild(div);
+            }
         });
         
-        document.getElementById('entryTeamsContainer').style.display = tb.innerHTML ? 'block' : 'none';
-        document.getElementById('entrySolosContainer').style.display = sb.innerHTML ? 'block' : 'none';
-        updateTicker(); checkMerge(); checkTeamClash(); updateDrawButtons();
+        if (tb.innerHTML !== '') {
+            document.getElementById('entryTeamsContainer').style.display = 'block';
+        } else {
+            document.getElementById('entryTeamsContainer').style.display = 'none';
+        }
+        
+        if (sb.innerHTML !== '') {
+            document.getElementById('entrySolosContainer').style.display = 'block';
+        } else {
+            document.getElementById('entrySolosContainer').style.display = 'none';
+        }
+        
+        updateTicker(); 
+        checkMerge(); 
+        checkTeamClash(); 
+        updateDrawButtons();
     }
 
     function deleteStateEntry(id) { 
         const idx = appState.findIndex(e => e.id === id); 
-        if(idx > -1) { appState.splice(idx,1); renderStateToScreen(); } 
+        if (idx > -1) { 
+            appState.splice(idx, 1); 
+            renderStateToScreen(); 
+        } 
     }
     
     function breakStateTeam(id) { 
         const idx = appState.findIndex(e => e.id === id); 
-        if(idx > -1) { 
-            const t = appState.splice(idx,1)[0]; 
-            t.anglers.forEach(a => { appState.push({ id: genId(), isTeam: false, tName: '', anglers: [{...a}] }); }); 
+        if (idx > -1) { 
+            const t = appState.splice(idx, 1)[0]; 
+            
+            t.anglers.forEach(a => { 
+                appState.push({ 
+                    id: genId(), 
+                    isTeam: false, 
+                    tName: '', 
+                    anglers: [{...a}] 
+                }); 
+            }); 
+            
             renderStateToScreen(); 
         } 
     }
     
     function mergeSelected() { 
         const sel = document.querySelectorAll('.merge-cb:checked'); 
-        if(sel.length !== 4) return; 
-        const ids = Array.from(sel).map(cb => cb.closest('.zone-card').dataset.id); 
+        
+        if (sel.length !== 4) {
+            return; 
+        }
+        
+        const ids = Array.from(sel).map(cb => {
+            return cb.closest('.zone-card').dataset.id;
+        }); 
+        
         const angs = []; 
+        
         ids.forEach(id => { 
             const idx = appState.findIndex(e => e.id === id); 
-            if(idx > -1) angs.push(appState.splice(idx,1)[0].anglers[0]); 
+            if (idx > -1) {
+                let removed = appState.splice(idx, 1)[0];
+                angs.push(removed.anglers[0]); 
+            }
         }); 
-        appState.push({ id: genId(), isTeam: true, tName: '', anglers: angs }); 
+        
+        appState.push({ 
+            id: genId(), 
+            isTeam: true, 
+            tName: '', 
+            anglers: angs 
+        }); 
+        
         renderStateToScreen(); 
     }
     
-    function checkMerge() { document.getElementById('mergeBtn').style.display = (document.querySelectorAll('.merge-cb:checked').length === 4) ? 'inline-block' : 'none'; }
+    function checkMerge() { 
+        let checkedBoxes = document.querySelectorAll('.merge-cb:checked');
+        if (checkedBoxes.length === 4) {
+            document.getElementById('mergeBtn').style.display = 'inline-block';
+        } else {
+            document.getElementById('mergeBtn').style.display = 'none';
+        }
+    }
     
     function checkTeamClash() {
-        let clash = false; if (mobilityMode === 'B') appState.forEach(e => { if (e.isTeam && e.anglers.filter(a => a.mobility).length > 1) clash = true; }); 
-        document.getElementById('teamClashWarning').style.display = clash ? 'block' : 'none';
-        document.getElementById('mainActionBtn').disabled = clash;
+        let clash = false; 
+        
+        if (mobilityMode === 'B') {
+            appState.forEach(e => { 
+                if (e.isTeam) {
+                    let mobCount = e.anglers.filter(a => a.mobility).length;
+                    if (mobCount > 1) {
+                        clash = true;
+                    }
+                } 
+            }); 
+        }
+        
+        if (clash) {
+            document.getElementById('teamClashWarning').style.display = 'block';
+            document.getElementById('mainActionBtn').disabled = true;
+        } else {
+            document.getElementById('teamClashWarning').style.display = 'none';
+            document.getElementById('mainActionBtn').disabled = false;
+        }
     }
     
     function updateTicker() { 
-        let ent = 0; appState.forEach(e => e.anglers.forEach(a => { if (a.name && (a.name || '').trim() !== '') ent++; }));
+        let ent = 0; 
+        
+        appState.forEach(e => {
+            e.anglers.forEach(a => { 
+                if (a.name && a.name.trim() !== '') {
+                    ent++; 
+                }
+            });
+        });
+        
         document.getElementById('tkAnglers').innerText = ent; 
     }
 
     function initiateShuffle() {
-        appState = appState.filter(e => e.isTeam ? (e.anglers.some(a => (a.name || '').trim() !== '') || (e.tName || '').trim() !== '') : (e.anglers[0].name || '').trim() !== '');
-        appState.forEach(e => e.anglers.forEach(a => { a.z1 = a.p1 = a.z2 = a.p2 = undefined; }));
+        let filteredState = [];
+        
+        appState.forEach(e => {
+            if (e.isTeam) {
+                let hasNames = e.anglers.some(a => (a.name || '').trim() !== '');
+                let hasTeamName = (e.tName || '').trim() !== '';
+                if (hasNames || hasTeamName) {
+                    filteredState.push(e);
+                }
+            } else {
+                let hasName = (e.anglers[0].name || '').trim() !== '';
+                if (hasName) {
+                    filteredState.push(e);
+                }
+            }
+        });
+        
+        appState = filteredState;
+        
+        appState.forEach(e => {
+            e.anglers.forEach(a => { 
+                a.z1 = undefined; 
+                a.p1 = undefined; 
+                a.z2 = undefined; 
+                a.p2 = undefined; 
+            });
+        });
+        
         renderStateToScreen();
-        const over = document.getElementById('shuffleOverlay'); const pBar = document.getElementById('pBar');
-        over.style.display = 'flex'; let p = 0;
-        const inv = setInterval(() => { p += 5; pBar.style.width = p + '%'; if(p >= 100) { clearInterval(inv); over.style.display = 'none'; runDraw(); } }, 30);
+        
+        const over = document.getElementById('shuffleOverlay'); 
+        const pBar = document.getElementById('pBar');
+        
+        over.style.display = 'flex'; 
+        let p = 0;
+        
+        const inv = setInterval(() => { 
+            p += 5; 
+            pBar.style.width = p + '%'; 
+            
+            if (p >= 100) { 
+                clearInterval(inv); 
+                over.style.display = 'none'; 
+                runDraw(); 
+            } 
+        }, 30);
     }
 
     function runDraw() {
-        // Priority Queue Sorting
+        
+        // --- PRIORITY QUEUE SORTING ---
         appState.sort((a, b) => {
             let getPriority = (entry) => { 
                 let hasA = entry.anglers.some(ang => ang.mobility); 
@@ -1018,14 +1240,23 @@
             return getPriority(b) - getPriority(a);
         });
 
-        const s1A = (document.getElementById('accPegs1_a').value || '').match(/\d+/g)?.map(Number) || [];
-        const s2A = (document.getElementById('accPegs2_a').value || '').match(/\d+/g)?.map(Number) || [];
-        const sAnch = (document.getElementById('accPegsAnchor').value || '').match(/\d+/g)?.map(Number) || [];
+        let s1A_str = document.getElementById('accPegs1_a').value || '';
+        let s2A_str = document.getElementById('accPegs2_a').value || '';
+        let sAnch_str = document.getElementById('accPegsAnchor').value || '';
+        
+        let s1A = s1A_str.match(/\d+/g) ? s1A_str.match(/\d+/g).map(Number) : [];
+        let s2A = s2A_str.match(/\d+/g) ? s2A_str.match(/\d+/g).map(Number) : [];
+        let sAnch = sAnch_str.match(/\d+/g) ? sAnch_str.match(/\d+/g).map(Number) : [];
+        
         const ancZ = document.getElementById('anchorZoneSelect').value;
         
         let tot = 0; 
         appState.forEach(e => {
-            tot += e.isTeam ? 4 : 1;
+            if (e.isTeam) {
+                tot += 4;
+            } else {
+                tot += 1;
+            }
         });
         
         let zSize = Math.max(Math.ceil(tot / 4), 1); 
@@ -1033,7 +1264,7 @@
         
         let p1 = zones.map((z, idx) => { 
             let p = []; 
-            for(let i = 1; i <= zSize; i++) {
+            for (let i = 1; i <= zSize; i++) {
                 p.push((idx * zSize) + i);
             }
             p.sort(() => Math.random() - 0.5); 
@@ -1042,12 +1273,95 @@
         
         let p2 = zones.map((z, idx) => { 
             let p = []; 
-            for(let i = 1; i <= zSize; i++) {
+            for (let i = 1; i <= zSize; i++) {
                 p.push((idx * zSize) + i);
             }
             p.sort(() => Math.random() - 0.5); 
             return {z, p}; 
         });
+
+        // --- LOOK-AHEAD SAFE PEG ALLOCATION (THE CLASH MINIMIZER) ---
+        // We calculate optimal assignments for ALL [A] anglers before looping.
+        let aEntries = [];
+        appState.forEach(e => {
+            if (e.anglers.some(a => a.mobility)) {
+                aEntries.push(e);
+            }
+        });
+
+        if (mobilityMode === 'A' && aEntries.length > 0) {
+            let availableD1Safe = [];
+            let availableD2Safe = [];
+            
+            // Build absolute list of physically available safe pegs on Day 1
+            zones.forEach(z => {
+                let zI = zones.indexOf(z);
+                let safeCount = 0;
+                p1[zI].p.forEach(pegNum => {
+                    if (s1A.includes(pegNum)) {
+                        safeCount++;
+                    }
+                });
+                for (let i = 0; i < safeCount; i++) {
+                    availableD1Safe.push(z);
+                }
+            });
+            
+            // Build absolute list of physically available safe pegs on Day 2
+            zones.forEach(z => {
+                let zI = zones.indexOf(z);
+                let safeCount = 0;
+                p2[zI].p.forEach(pegNum => {
+                    if (s2A.includes(pegNum)) {
+                        safeCount++;
+                    }
+                });
+                for (let i = 0; i < safeCount; i++) {
+                    availableD2Safe.push(z);
+                }
+            });
+
+            let bestPairing = [];
+            let leastClashes = 999;
+            
+            // Run 100 simulation attempts to find a combination with zero Double Zones
+            for (let attempt = 0; attempt < 100; attempt++) {
+                let tempD1 = [...availableD1Safe].sort(() => Math.random() - 0.5);
+                let tempD2 = [...availableD2Safe].sort(() => Math.random() - 0.5);
+                
+                let clashes = 0;
+                let currentPairs = [];
+                
+                for (let i = 0; i < aEntries.length; i++) {
+                    let z1 = null;
+                    let z2 = null;
+                    
+                    if (i < tempD1.length) z1 = tempD1[i];
+                    if (i < tempD2.length) z2 = tempD2[i];
+                    
+                    if (z1 !== null && z2 !== null && z1 === z2) {
+                        clashes++;
+                    }
+                    
+                    currentPairs.push({z1: z1, z2: z2});
+                }
+                
+                if (clashes < leastClashes) {
+                    leastClashes = clashes;
+                    bestPairing = currentPairs;
+                    if (leastClashes === 0) {
+                        break; // Perfect assignment found, no need to keep trying
+                    }
+                }
+            }
+
+            // Lock in the optimal assignments
+            aEntries.forEach((e, idx) => {
+                let a = e.anglers.find(ang => ang.mobility);
+                a.preZ1 = bestPairing[idx].z1;
+                a.preZ2 = bestPairing[idx].z2;
+            });
+        }
         
         const pull = (z, d2, mob) => {
             const pools = d2 ? p2 : p1; 
@@ -1056,7 +1370,7 @@
             if (mobilityMode === 'B') {
                 if (mob && z === ancZ) { 
                     let sI = pools[zI].p.findIndex(p => sAnch.includes(p)); 
-                    if(sI > -1) {
+                    if (sI > -1) {
                         return pools[zI].p.splice(sI, 1)[0]; 
                     }
                 }
@@ -1064,35 +1378,39 @@
                 const sL = d2 ? s2A : s1A;
                 if (mob) { 
                     let sI = pools[zI].p.findIndex(p => sL.includes(p)); 
-                    if(sI > -1) {
+                    if (sI > -1) {
                         return pools[zI].p.splice(sI, 1)[0]; 
                     }
                 } else if (sL.length > 0) { 
-                    // Hard Reserve: Standard anglers avoid safe pegs
+                    // HARD RESERVE: Standard anglers MUST bypass safe pegs if possible
                     let nI = pools[zI].p.findIndex(p => !sL.includes(p)); 
-                    if(nI > -1) {
+                    if (nI > -1) {
                         return pools[zI].p.splice(nI, 1)[0]; 
                     }
                 }
             }
-            return pools[zI].p.pop() || 99;
-        };
-        
-        const canS = (z, d, mob) => { 
-            if(!mob) return true; 
-            let sL = d === 1 ? s1A : s2A; 
-            return (d === 1 ? p1 : p2)[zones.indexOf(z)].p.some(p => sL.includes(p)); 
+            
+            let popVal = pools[zI].p.pop();
+            if (popVal !== undefined) {
+                return popVal;
+            } else {
+                return 99;
+            }
         };
         
         appState.forEach(e => {
             if (e.isTeam) {
-                let hasA = e.anglers.some(a => a.mobility);
+                let hasA = false;
+                e.anglers.forEach(a => {
+                    if (a.mobility) hasA = true;
+                });
                 
                 if (mobilityMode === 'B' && hasA) {
                     let d1Z = [];
                     let d2Z = []; 
+                    
                     e.anglers.forEach(a => { 
-                        if(a.mobility) { 
+                        if (a.mobility) { 
                             d1Z.push(ancZ); 
                             d2Z.push(ancZ); 
                         } else { 
@@ -1102,13 +1420,24 @@
                     });
                     
                     e.anglers.forEach((a, i) => { 
-                        if(!a.mobility) { 
-                            let av = zones.filter(z => z !== ancZ && !d1Z.includes(z)); 
+                        if (!a.mobility) { 
+                            let av = [];
+                            zones.forEach(z => {
+                                if (z !== ancZ && !d1Z.includes(z)) {
+                                    av.push(z);
+                                }
+                            });
                             d1Z[i] = av[0]; 
                         } 
                     });
                     
-                    let sI = e.anglers.map((a, i) => !a.mobility ? i : -1).filter(i => i > -1);
+                    let sI = [];
+                    e.anglers.forEach((a, i) => {
+                        if (!a.mobility) {
+                            sI.push(i);
+                        }
+                    });
+                    
                     d2Z[sI[0]] = d1Z[sI[1]]; 
                     d2Z[sI[1]] = d1Z[sI[2]]; 
                     d2Z[sI[2]] = d1Z[sI[0]];
@@ -1121,45 +1450,86 @@
                     });
                     
                 } else if (mobilityMode === 'A' && hasA) {
-                    let d1Z = [...zones].sort(() => Math.random() - 0.5); 
-                    let d2Z = [d1Z[1], d1Z[2], d1Z[3], d1Z[0]];
+                    
                     let mI = e.anglers.findIndex(a => a.mobility); 
-                    let best = 0;
-                    let foundSafe = false;
+                    let a = e.anglers[mI];
                     
-                    for (let i = 0; i < 4; i++) { 
-                        if (canS(d1Z[i], 1, 1) && canS(d2Z[i], 2, 1)) { 
-                            best = i; 
-                            foundSafe = true;
-                            break; 
-                        } 
+                    let targetZ1 = a.preZ1;
+                    let targetZ2 = a.preZ2;
+                    
+                    // Fallbacks just in case there weren't enough safe pegs for everyone
+                    if (!targetZ1) {
+                        let randZones = [...zones].sort(() => Math.random() - 0.5);
+                        targetZ1 = randZones[0];
                     }
-                    
-                    if (!foundSafe) {
-                        // Double-Zone Failsafe Trigger
-                        for (let i = 0; i < 4; i++) {
-                            if (canS(d1Z[i], 1, 1)) {
-                                best = i;
-                                break;
-                            }
-                        }
-                        let targetZoneDay2 = d2Z.find(z => canS(z, 2, 1));
-                        if (targetZoneDay2) {
-                            let targetIndex = d2Z.indexOf(targetZoneDay2);
-                            let temp = d2Z[best];
-                            d2Z[best] = d2Z[targetIndex];
-                            d2Z[targetIndex] = temp;
+                    if (!targetZ2) {
+                        let randZones = [];
+                        zones.forEach(z => {
+                            if (z !== targetZ1) randZones.push(z);
+                        });
+                        randZones.sort(() => Math.random() - 0.5);
+                        
+                        if (randZones.length > 0) {
+                            targetZ2 = randZones[0];
+                        } else {
+                            targetZ2 = targetZ1;
                         }
                     }
 
-                    let col = [0, 1, 2, 3]; 
-                    [col[mI], col[best]] = [col[best], col[mI]];
+                    let d1Z = [null, null, null, null];
+                    let d2Z = [null, null, null, null];
                     
-                    e.anglers.forEach((a, i) => { 
-                        a.z1 = d1Z[col[i]]; 
-                        a.p1 = pull(a.z1, 0, a.mobility); 
-                        a.z2 = d2Z[col[i]]; 
-                        a.p2 = pull(a.z2, 1, a.mobility); 
+                    d1Z[mI] = targetZ1;
+                    d2Z[mI] = targetZ2;
+                    
+                    let remainingD1 = [];
+                    zones.forEach(z => {
+                        if (z !== targetZ1) remainingD1.push(z);
+                    });
+                    
+                    let remainingD2 = [];
+                    zones.forEach(z => {
+                        if (z !== targetZ2) remainingD2.push(z);
+                    });
+                    
+                    // Shuffle the remaining zones
+                    remainingD1.sort(() => Math.random() - 0.5);
+                    
+                    let bestD2Perm = [...remainingD2];
+                    
+                    // Find a permutation of remaining D2 zones where nobody else gets a double zone
+                    for (let attempt = 0; attempt < 20; attempt++) {
+                        remainingD2.sort(() => Math.random() - 0.5);
+                        let isValid = true;
+                        
+                        for (let i = 0; i < 3; i++) {
+                            if (remainingD1[i] === remainingD2[i]) {
+                                isValid = false;
+                            }
+                        }
+                        
+                        if (isValid) {
+                            bestD2Perm = [...remainingD2];
+                            break;
+                        }
+                    }
+                    
+                    remainingD2 = bestD2Perm;
+                    
+                    let rIdx = 0;
+                    for (let i = 0; i < 4; i++) {
+                        if (i !== mI) {
+                            d1Z[i] = remainingD1[rIdx];
+                            d2Z[i] = remainingD2[rIdx];
+                            rIdx++;
+                        }
+                    }
+                    
+                    e.anglers.forEach((ang, i) => { 
+                        ang.z1 = d1Z[i]; 
+                        ang.p1 = pull(ang.z1, 0, ang.mobility); 
+                        ang.z2 = d2Z[i]; 
+                        ang.p2 = pull(ang.z2, 1, ang.mobility); 
                     });
                     
                 } else {
@@ -1174,20 +1544,70 @@
                     });
                 }
             } else {
+                // Solo Processing
                 let a = e.anglers[0]; 
+                
                 if (mobilityMode === 'B' && a.mobility) { 
                     a.z1 = ancZ;
                     a.z2 = ancZ; 
-                } else { 
-                    let av = zones.filter(z => p1[zones.indexOf(z)].p.length > 0); 
-                    a.z1 = av[Math.floor(Math.random() * av.length)]; 
+                } else if (mobilityMode === 'A' && a.mobility) {
                     
-                    let av2 = zones.filter(z => z !== a.z1 && p2[zones.indexOf(z)].p.length > 0); 
-                    if (av2.length === 0) {
-                        av2 = zones.filter(z => p2[zones.indexOf(z)].p.length > 0);
+                    if (a.preZ1) {
+                        a.z1 = a.preZ1;
+                    } else {
+                        a.z1 = zones[Math.floor(Math.random() * zones.length)];
                     }
-                    a.z2 = av2[Math.floor(Math.random() * av2.length)]; 
+                    
+                    if (a.preZ2) {
+                        a.z2 = a.preZ2;
+                    } else {
+                        let av2 = [];
+                        zones.forEach(z => {
+                            if (z !== a.z1) av2.push(z);
+                        });
+                        
+                        if (av2.length > 0) {
+                            a.z2 = av2[0];
+                        } else {
+                            a.z2 = a.z1;
+                        }
+                    }
+                    
+                } else { 
+                    let av = [];
+                    zones.forEach(z => {
+                        let zI = zones.indexOf(z);
+                        if (p1[zI].p.length > 0) {
+                            av.push(z);
+                        }
+                    });
+                    
+                    if (av.length > 0) {
+                        a.z1 = av[Math.floor(Math.random() * av.length)]; 
+                    }
+                    
+                    let av2 = [];
+                    zones.forEach(z => {
+                        let zI = zones.indexOf(z);
+                        if (z !== a.z1 && p2[zI].p.length > 0) {
+                            av2.push(z);
+                        }
+                    });
+                    
+                    if (av2.length === 0) {
+                        zones.forEach(z => {
+                            let zI = zones.indexOf(z);
+                            if (p2[zI].p.length > 0) {
+                                av2.push(z);
+                            }
+                        });
+                    }
+                    
+                    if (av2.length > 0) {
+                        a.z2 = av2[Math.floor(Math.random() * av2.length)]; 
+                    }
                 }
+                
                 a.p1 = pull(a.z1, 0, a.mobility); 
                 a.p2 = pull(a.z2, 1, a.mobility);
             }
@@ -1195,21 +1615,75 @@
         displayDraw();
     }
 
-    function toggleSwapMode() { isSwapMode = !isSwapMode; swapObj1 = null; document.getElementById('swapPrompt').style.display = isSwapMode ? 'block' : 'none'; displayDraw(); }
+    function toggleSwapMode() { 
+        if (isSwapMode) {
+            isSwapMode = false;
+        } else {
+            isSwapMode = true;
+        }
+        
+        swapObj1 = null; 
+        
+        if (isSwapMode) {
+            document.getElementById('swapPrompt').style.display = 'block';
+        } else {
+            document.getElementById('swapPrompt').style.display = 'none';
+        }
+        
+        displayDraw(); 
+    }
 
     function handleSwapClick(eId, aI, day) { 
-        if(!isSwapMode) return; 
-        if(!swapObj1) { swapObj1 = {eId, aI, day}; displayDraw(); } else { 
-            if(swapObj1.day !== day) { alert("Please select another Day " + swapObj1.day + " peg to complete the swap."); return; }
-            const e1 = appState.find(e => e.id === swapObj1.eId); const e2 = appState.find(e => e.id === eId); 
-            const a1 = e1.anglers[swapObj1.aI]; const a2 = e2.anglers[aI]; 
-            if(day === 1) { [a1.z1, a2.z1] = [a2.z1, a1.z1]; [a1.p1, a2.p1] = [a2.p1, a1.p1]; } 
-            else { [a1.z2, a2.z2] = [a2.z2, a1.z2]; [a1.p2, a2.p2] = [a2.p2, a1.p2]; }
+        if (!isSwapMode) {
+            return; 
+        }
+        
+        if (!swapObj1) { 
+            swapObj1 = {
+                eId: eId, 
+                aI: aI, 
+                day: day
+            }; 
+            displayDraw(); 
+        } else { 
+            if (swapObj1.day !== day) { 
+                alert("Please select another Day " + swapObj1.day + " peg to complete the swap."); 
+                return; 
+            }
+            
+            let e1 = null;
+            let e2 = null;
+            
+            appState.forEach(e => {
+                if (e.id === swapObj1.eId) e1 = e;
+                if (e.id === eId) e2 = e;
+            });
+            
+            const a1 = e1.anglers[swapObj1.aI]; 
+            const a2 = e2.anglers[aI]; 
+            
+            if (day === 1) { 
+                let tempZ = a1.z1;
+                a1.z1 = a2.z1;
+                a2.z1 = tempZ;
+                
+                let tempP = a1.p1;
+                a1.p1 = a2.p1;
+                a2.p1 = tempP;
+            } else { 
+                let tempZ = a1.z2;
+                a1.z2 = a2.z2;
+                a2.z2 = tempZ;
+                
+                let tempP = a1.p2;
+                a1.p2 = a2.p2;
+                a2.p2 = tempP;
+            }
+            
             toggleSwapMode(); 
         } 
     }
 
-    // --- CORRECTED: THE SILENT VALIDATOR ---
     function runValidator() {
         let errors = [];
         let pM1 = { RED:[], YELLOW:[], GREEN:[], BLUE:[] };
@@ -1217,53 +1691,116 @@
 
         appState.forEach(team => {
             let tN = team.tName || 'SOLO';
+            
             if (team.isTeam) {
-                let d1Zones = [], d2Zones = [];
+                let d1Zones = [];
+                let d2Zones = [];
+                
                 team.anglers.forEach(a => {
-                    if(a.z1) {
-                        if(d1Zones.includes(a.z1)) errors.push(`TEAM CLASH: '${tN}' has multiple anglers in ${a.z1} on DAY 1.`);
+                    if (a.z1) {
+                        if (d1Zones.includes(a.z1)) {
+                            errors.push(`TEAM CLASH: '${tN}' has multiple anglers in ${a.z1} on DAY 1.`);
+                        }
                         d1Zones.push(a.z1);
                     }
-                    if(matchDays === 2 && a.z2) {
-                        if(d2Zones.includes(a.z2)) errors.push(`TEAM CLASH: '${tN}' has multiple anglers in ${a.z2} on DAY 2.`);
+                    if (matchDays === 2 && a.z2) {
+                        if (d2Zones.includes(a.z2)) {
+                            errors.push(`TEAM CLASH: '${tN}' has multiple anglers in ${a.z2} on DAY 2.`);
+                        }
                         d2Zones.push(a.z2);
                     }
                 });
             }
+            
             team.anglers.forEach(a => {
                 let aN = a.name || 'UNNAMED';
                 
-                if (!a.z1 || a.p1 === 99 || a.p1 === undefined) errors.push(`GHOST PEG: '${aN}' has an invalid peg on DAY 1.`);
-                if (matchDays === 2 && (!a.z2 || a.p2 === 99 || a.p2 === undefined)) errors.push(`GHOST PEG: '${aN}' has an invalid peg on DAY 2.`);
+                if (!a.z1 || a.p1 === 99 || a.p1 === undefined) {
+                    errors.push(`GHOST PEG: '${aN}' has an invalid peg on DAY 1.`);
+                }
                 
-                if (matchDays === 2 && a.z1 === a.z2 && !a.mobility) {
+                if (matchDays === 2 && (!a.z2 || a.p2 === 99 || a.p2 === undefined)) {
+                    errors.push(`GHOST PEG: '${aN}' has an invalid peg on DAY 2.`);
+                }
+                
+                // Allow double zone silently ONLY IF the angler has mobility requirements 
+                // in Mode A (Failsafe triggered) or Mode B (Static).
+                let allowedDouble = false;
+                if (a.mobility) {
+                    allowedDouble = true;
+                }
+                
+                if (matchDays === 2 && a.z1 === a.z2 && !allowedDouble) {
                     errors.push(`DOUBLE ZONE: '${aN}' fishes ${a.z1} both days.`);
                 }
                 
                 if (a.z1 && a.p1 && a.p1 !== 99) {
-                    if (pM1[a.z1].includes(a.p1)) errors.push(`PEG CLASH: '${a.z1} ${a.p1}' duplicated on DAY 1.`);
+                    if (pM1[a.z1].includes(a.p1)) {
+                        errors.push(`PEG CLASH: '${a.z1} ${a.p1}' duplicated on DAY 1.`);
+                    }
                     pM1[a.z1].push(a.p1);
                 }
+                
                 if (matchDays === 2 && a.z2 && a.p2 && a.p2 !== 99) {
-                    if (pM2[a.z2].includes(a.p2)) errors.push(`PEG CLASH: '${a.z2} ${a.p2}' duplicated on DAY 2.`);
+                    if (pM2[a.z2].includes(a.p2)) {
+                        errors.push(`PEG CLASH: '${a.z2} ${a.p2}' duplicated on DAY 2.`);
+                    }
                     pM2[a.z2].push(a.p2);
                 }
             });
         });
-        return [...new Set(errors)];
+        
+        // Remove duplicates
+        let uniqueErrors = [];
+        errors.forEach(e => {
+            if (!uniqueErrors.includes(e)) {
+                uniqueErrors.push(e);
+            }
+        });
+        
+        return uniqueErrors;
     }
 
     function isPegSafe(p, d) { 
-        if(mobilityMode === 'B') return (document.getElementById('accPegsAnchor').value.match(/\d+/g) || []).includes(String(p)); 
-        return (document.getElementById(d === 1 ? 'accPegs1_a' : 'accPegs2_a').value.match(/\d+/g) || []).includes(String(p)); 
+        if (mobilityMode === 'B') {
+            let anchorStr = document.getElementById('accPegsAnchor').value;
+            let anchorArr = anchorStr.match(/\d+/g) || [];
+            return anchorArr.includes(String(p));
+        } else {
+            let safeStr = '';
+            if (d === 1) {
+                safeStr = document.getElementById('accPegs1_a').value;
+            } else {
+                safeStr = document.getElementById('accPegs2_a').value;
+            }
+            let safeArr = safeStr.match(/\d+/g) || [];
+            return safeArr.includes(String(p));
+        }
     }
 
-    function toggleExportMenu() { const m = document.getElementById('exportMenu'); m.style.display = m.style.display === 'none' ? 'flex' : 'none'; }
+    function toggleExportMenu() { 
+        const m = document.getElementById('exportMenu'); 
+        if (m.style.display === 'none') {
+            m.style.display = 'flex';
+        } else {
+            m.style.display = 'none';
+        }
+    }
 
     function displayDraw() {
-        document.querySelectorAll('body > div[id$="Section"]').forEach(s => s.style.display = 'none');
+        document.querySelectorAll('body > div[id$="Section"]').forEach(s => {
+            s.style.display = 'none';
+        });
+        
         document.getElementById('resultsSection').style.display = 'block';
-        document.getElementById('resTitle').innerText = document.getElementById('matchTitle').value || "DRAW";
+        
+        let titleVal = document.getElementById('matchTitle').value;
+        if (titleVal) {
+            document.getElementById('resTitle').innerText = titleVal;
+        } else {
+            document.getElementById('resTitle').innerText = "DRAW";
+        }
+        
         document.getElementById('commandBar').style.display = 'none';
 
         const s = currentZoneSize;
@@ -1275,141 +1812,509 @@
         const anom = runValidator(); 
         const banner = document.getElementById('anomalyBanner'); 
         const list = document.getElementById('anomalyList');
+        
         if (anom.length > 0) { 
             banner.style.display = 'block'; 
-            list.innerHTML = anom.map(err => `<li>${err}</li>`).join(''); 
+            
+            let listHTML = '';
+            anom.forEach(err => {
+                listHTML += `<li>${err}</li>`;
+            });
+            list.innerHTML = listHTML;
+            
         } else { 
             banner.style.display = 'none'; 
         }
 
-        const tb = document.getElementById('teamsBucket'); tb.innerHTML = ''; 
-        const sb = document.getElementById('solosBucket'); sb.innerHTML = '';
+        const tb = document.getElementById('teamsBucket'); 
+        tb.innerHTML = ''; 
+        
+        const sb = document.getElementById('solosBucket'); 
+        sb.innerHTML = '';
         
         appState.forEach(g => {
-            const div = document.createElement('div'); div.className = 'zone-card';
-            const fZ = g.anglers[0]?.z1; div.style.borderTopColor = zColors[fZ] || 'black';
-            let h = `<div class="zone-header" style="background:${zSofts[fZ]||'#f1f5f9'};"><span>${g.tName || 'SOLO'}</span></div>`;
+            const div = document.createElement('div'); 
+            div.className = 'zone-card';
+            
+            let fZ = null;
+            if (g.anglers[0] && g.anglers[0].z1) {
+                fZ = g.anglers[0].z1;
+            }
+            
+            if (fZ && zColors[fZ]) {
+                div.style.borderTopColor = zColors[fZ];
+            } else {
+                div.style.borderTopColor = 'black';
+            }
+            
+            let bgSoft = '#f1f5f9';
+            if (fZ && zSofts[fZ]) {
+                bgSoft = zSofts[fZ];
+            }
+            
+            let nameStr = g.tName ? g.tName : 'SOLO';
+            
+            let h = `<div class="zone-header" style="background:${bgSoft};"><span>${nameStr}</span></div>`;
             h += `<div class="res-row" style="border:none; font-size:10px; color:#64748b;"><span></span><span style="text-align:center;">DAY 1</span><span style="text-align:center;">DAY 2</span></div>`;
+            
             g.anglers.forEach((a, aI) => {
-                let p1C = isSwapMode ? 'swap-active' : ''; if(swapObj1?.eId === g.id && swapObj1?.aI === aI && swapObj1?.day === 1) p1C += ' swap-selected';
-                let p2C = isSwapMode ? 'swap-active' : ''; if(swapObj1?.eId === g.id && swapObj1?.aI === aI && swapObj1?.day === 2) p2C += ' swap-selected';
-                h += `<div class="res-row"><span class="angler-name">${a.name || ''}${a.mobility ? ' <span class="a-tag">[A]</span>' : ''}</span>
-                        <div class="draw-pill ${p1C}" style="background:${zColors[a.z1]}" onclick="handleSwapClick('${g.id}',${aI},1)"><span>${a.z1}</span> <span class="peg-num">${a.p1}</span>${isPegSafe(a.p1,1) ? '<br><small>[A]</small>' : ''}</div>
-                        <div class="draw-pill ${p2C}" style="background:${zColors[a.z2]}" onclick="handleSwapClick('${g.id}',${aI},2)"><span>${a.z2}</span> <span class="peg-num">${a.p2}</span>${isPegSafe(a.p2,2) ? '<br><small>[A]</small>' : ''}</div></div>`;
+                let p1C = '';
+                if (isSwapMode) {
+                    p1C = 'swap-active';
+                }
+                if (swapObj1 && swapObj1.eId === g.id && swapObj1.aI === aI && swapObj1.day === 1) {
+                    p1C += ' swap-selected';
+                }
+                
+                let p2C = '';
+                if (isSwapMode) {
+                    p2C = 'swap-active';
+                }
+                if (swapObj1 && swapObj1.eId === g.id && swapObj1.aI === aI && swapObj1.day === 2) {
+                    p2C += ' swap-selected';
+                }
+                
+                let aName = a.name || '';
+                let aTag = a.mobility ? ' <span class="a-tag">[A]</span>' : '';
+                
+                let d1Bg = zColors[a.z1] || 'gray';
+                let d2Bg = zColors[a.z2] || 'gray';
+                
+                let d1SafeTag = isPegSafe(a.p1, 1) ? '<br><small>[A]</small>' : '';
+                let d2SafeTag = isPegSafe(a.p2, 2) ? '<br><small>[A]</small>' : '';
+                
+                h += `<div class="res-row">
+                        <span class="angler-name">${aName}${aTag}</span>
+                        <div class="draw-pill ${p1C}" style="background:${d1Bg}" onclick="handleSwapClick('${g.id}',${aI},1)">
+                            <span>${a.z1}</span> <span class="peg-num">${a.p1}</span>${d1SafeTag}
+                        </div>
+                        <div class="draw-pill ${p2C}" style="background:${d2Bg}" onclick="handleSwapClick('${g.id}',${aI},2)">
+                            <span>${a.z2}</span> <span class="peg-num">${a.p2}</span>${d2SafeTag}
+                        </div>
+                      </div>`;
             });
-            div.innerHTML = h; if(g.isTeam) tb.appendChild(div); else sb.appendChild(div);
+            
+            div.innerHTML = h; 
+            
+            if (g.isTeam) {
+                tb.appendChild(div);
+            } else {
+                sb.appendChild(div);
+            }
         });
-        document.getElementById('teamsBucketContainer').style.display = tb.innerHTML ? 'block' : 'none';
-        document.getElementById('solosBucketContainer').style.display = sb.innerHTML ? 'block' : 'none';
+        
+        if (tb.innerHTML !== '') {
+            document.getElementById('teamsBucketContainer').style.display = 'block';
+        } else {
+            document.getElementById('teamsBucketContainer').style.display = 'none';
+        }
+        
+        if (sb.innerHTML !== '') {
+            document.getElementById('solosBucketContainer').style.display = 'block';
+        } else {
+            document.getElementById('solosBucketContainer').style.display = 'none';
+        }
+        
         window.scrollTo(0,0);
     }
 
     function handleAmend(isSafe) { 
-        document.querySelectorAll('body > div[id$="Section"]').forEach(s => s.style.display = 'none'); 
+        document.querySelectorAll('body > div[id$="Section"]').forEach(s => {
+            s.style.display = 'none';
+        });
+        
         document.getElementById('entrySection').style.display = 'block'; 
         document.getElementById('commandBar').style.display = 'flex'; 
         
-        if(appState.length > 0) { 
+        if (appState.length > 0) { 
             document.getElementById('initMatchBtn').style.display = 'none'; 
             document.getElementById('amendTools').style.display = 'flex'; 
             document.getElementById('actionBtnArea').style.display = 'flex'; 
         }
         
-        const hasD = appState.some(e => e.anglers.some(a => a.z1));
-        document.getElementById('setupPanel').style.display = isSafe ? 'none' : 'block';
-        document.getElementById('editDrawBanner').style.display = isSafe ? 'block' : 'none';
-        
-        document.getElementById('accToggleBtn').style.display = isSafe ? 'none' : 'block';
-        document.getElementById('accPanelWrapper').style.display = (isSafe || !accEnabled) ? 'none' : 'flex';
+        if (isSafe) {
+            document.getElementById('setupPanel').style.display = 'none';
+            document.getElementById('editDrawBanner').style.display = 'block';
+            document.getElementById('accToggleBtn').style.display = 'none';
+            document.getElementById('accPanelWrapper').style.display = 'none';
+        } else {
+            document.getElementById('setupPanel').style.display = 'block';
+            document.getElementById('editDrawBanner').style.display = 'none';
+            document.getElementById('accToggleBtn').style.display = 'block';
+            
+            if (accEnabled) {
+                document.getElementById('accPanelWrapper').style.display = 'flex';
+            } else {
+                document.getElementById('accPanelWrapper').style.display = 'none';
+            }
+        }
         
         renderStateToScreen(); 
     }
 
     function generateRegistrationSheet() {
-        const c = document.getElementById('registrationPrintSection'); c.innerHTML = '';
-        let h = `<div class="roster-header"><h1>${document.getElementById('matchTitle').value}</h1><h2>REGISTRATION</h2></div><table class="print-table"><thead><tr><th>NAME</th><th>TEAM</th><th>PRESENT</th><th>FEES</th><th>POOLS</th></tr></thead><tbody>`;
-        appState.sort((a,b) => (a.tName || "SOLO").localeCompare(b.tName || "SOLO")).forEach(e => { e.anglers.forEach(a => { 
-            h += `<tr><td>${a.name || ''}${a.mobility ? ' [A]' : ''}</td><td>${e.tName || 'SOLO'}</td><td><div class="print-checkbox"></div></td><td><div class="print-checkbox"></div></td><td><div class="print-checkbox"></div></td></tr>`; 
-        }); });
-        c.innerHTML = h + "</tbody></table>"; 
-        document.body.classList.add('printing-registration'); window.print(); document.body.classList.remove('printing-registration');
+        const c = document.getElementById('registrationPrintSection'); 
+        c.innerHTML = '';
+        
+        let matchName = document.getElementById('matchTitle').value;
+        
+        let h = `<div class="roster-header">
+                    <h1>${matchName}</h1>
+                    <h2>REGISTRATION</h2>
+                 </div>
+                 <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th>NAME</th>
+                            <th>TEAM</th>
+                            <th>PRESENT</th>
+                            <th>FEES</th>
+                            <th>POOLS</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+                    
+        let sortedState = [...appState].sort((a,b) => {
+            let nameA = a.tName || "SOLO";
+            let nameB = b.tName || "SOLO";
+            return nameA.localeCompare(nameB);
+        });
+        
+        sortedState.forEach(e => { 
+            e.anglers.forEach(a => { 
+                let aName = a.name || '';
+                let mobStr = a.mobility ? ' [A]' : '';
+                let tName = e.tName || 'SOLO';
+                
+                h += `<tr>
+                        <td>${aName}${mobStr}</td>
+                        <td>${tName}</td>
+                        <td><div class="print-checkbox"></div></td>
+                        <td><div class="print-checkbox"></div></td>
+                        <td><div class="print-checkbox"></div></td>
+                      </tr>`; 
+            }); 
+        });
+        
+        h += `</tbody></table>`;
+        c.innerHTML = h;
+        
+        document.body.classList.add('printing-registration'); 
+        window.print(); 
+        document.body.classList.remove('printing-registration');
     }
 
     function printZoneRosters() {
-        const c = document.getElementById('rosterSection'); c.innerHTML = '';
-        [1, 2].forEach(d => { zones.forEach(z => {
-            let list = []; appState.forEach(e => { e.anglers.forEach(a => { if((d === 1 ? a.z1 : a.z2) === z) list.push({ n: a.name || '', t: e.tName, p: (d === 1 ? a.p1 : a.p2) }); }); });
-            if(!list.length) return; list.sort((a, b) => a.p - b.p);
-            let h = `<div class="roster-page"><div class="roster-header"><h1>DAY ${d} - ${z}</h1></div><table class="print-table"><thead><tr><th>PEG</th><th>NAME</th><th>TEAM</th></tr></thead><tbody>`;
-            list.forEach(i => { h += `<tr><td>${i.p}</td><td>${i.n}</td><td>${i.t || 'SOLO'}</td></tr>`; });
-            c.innerHTML += h + "</tbody></table></div>";
-        }); });
-        document.body.classList.add('printing-rosters'); window.print(); document.body.classList.remove('printing-rosters');
+        const c = document.getElementById('rosterSection'); 
+        c.innerHTML = '';
+        
+        let days = [1, 2];
+        
+        days.forEach(d => { 
+            zones.forEach(z => {
+                let list = []; 
+                
+                appState.forEach(e => { 
+                    e.anglers.forEach(a => { 
+                        let targetZ = null;
+                        if (d === 1) {
+                            targetZ = a.z1;
+                        } else {
+                            targetZ = a.z2;
+                        }
+                        
+                        if (targetZ === z) {
+                            let targetP = null;
+                            if (d === 1) {
+                                targetP = a.p1;
+                            } else {
+                                targetP = a.p2;
+                            }
+                            
+                            list.push({ 
+                                n: a.name || '', 
+                                t: e.tName, 
+                                p: targetP 
+                            }); 
+                        }
+                    }); 
+                });
+                
+                if (list.length === 0) {
+                    return; 
+                }
+                
+                list.sort((a, b) => a.p - b.p);
+                
+                let h = `<div class="roster-page">
+                            <div class="roster-header">
+                                <h1>DAY ${d} - ${z}</h1>
+                            </div>
+                            <table class="print-table">
+                                <thead>
+                                    <tr>
+                                        <th>PEG</th>
+                                        <th>NAME</th>
+                                        <th>TEAM</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+                                
+                list.forEach(i => { 
+                    let tName = i.t || 'SOLO';
+                    h += `<tr>
+                            <td>${i.p}</td>
+                            <td>${i.n}</td>
+                            <td>${tName}</td>
+                          </tr>`; 
+                });
+                
+                h += `</tbody></table></div>`;
+                c.innerHTML += h;
+            }); 
+        });
+        
+        document.body.classList.add('printing-rosters'); 
+        window.print(); 
+        document.body.classList.remove('printing-rosters');
     }
 
     function generateDispatchSlips() {
-        const c = document.getElementById('dispatchSection'); c.innerHTML = '';
-        appState.filter(e => e.isTeam).forEach(e => {
-            let h = `<div class="dispatch-slip" style="page-break-after: always;"><div class="dispatch-header"><h1>TEAM: ${e.tName || 'UNNAMED TEAM'}</h1></div><table class="print-table"><thead><tr><th>NAME</th><th>DAY 1</th><th>DAY 2</th><th style="width:100px;">PRIZE POT (£)</th><th style="width:120px;">SECRET PAIRS (£)</th><th style="width:120px;">ANGLER TOTAL</th></tr></thead><tbody>`;
-            e.anglers.forEach(a => { h += `<tr><td>${a.name || ''} ${a.mobility ? ' [A]' : ''}</td><td>${a.z1} ${a.p1}</td><td>${a.z2} ${a.p2}</td><td></td><td></td><td></td></tr>`; });
-            h += `<tr><td colspan="5" style="text-align: right; font-weight: 900; font-size: 16px; padding: 15px;">TOTAL TEAM CASH HANDOVER:</td><td style="font-weight: 900; font-size: 16px; background: #f8fafc;">£</td></tr></tbody></table></div>`;
+        const c = document.getElementById('dispatchSection'); 
+        c.innerHTML = '';
+        
+        let teamsOnly = [];
+        appState.forEach(e => {
+            if (e.isTeam) {
+                teamsOnly.push(e);
+            }
+        });
+        
+        teamsOnly.forEach(e => {
+            let tName = e.tName || 'UNNAMED TEAM';
+            
+            let h = `<div class="dispatch-slip" style="page-break-after: always;">
+                        <div class="dispatch-header">
+                            <h1>TEAM: ${tName}</h1>
+                        </div>
+                        <table class="print-table">
+                            <thead>
+                                <tr>
+                                    <th>NAME</th>
+                                    <th>DAY 1</th>
+                                    <th>DAY 2</th>
+                                    <th style="width:100px;">PRIZE POT (£)</th>
+                                    <th style="width:120px;">SECRET PAIRS (£)</th>
+                                    <th style="width:120px;">ANGLER TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                            
+            e.anglers.forEach(a => { 
+                let aName = a.name || '';
+                let mobStr = a.mobility ? ' [A]' : '';
+                
+                h += `<tr>
+                        <td>${aName} ${mobStr}</td>
+                        <td>${a.z1} ${a.p1}</td>
+                        <td>${a.z2} ${a.p2}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                      </tr>`; 
+            });
+            
+            h += `          <tr>
+                                <td colspan="5" style="text-align: right; font-weight: 900; font-size: 16px; padding: 15px;">TOTAL TEAM CASH HANDOVER:</td>
+                                <td style="font-weight: 900; font-size: 16px; background: #f8fafc;">£</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>`;
+                
             c.innerHTML += h;
         });
-        const solos = appState.filter(e => !e.isTeam);
-        for (let i = 0; i < solos.length; i += 4) {
-            const batch = solos.slice(i, i + 4); const page = document.createElement('div'); page.style.pageBreakAfter = 'always';
-            batch.forEach(e => { const a = e.anglers[0]; let h = `<div class="dispatch-slip"><div class="dispatch-header"><h1>SOLO COMPETITOR: ${a.name || 'UNNAMED'} ${a.mobility ? ' [A]' : ''}</h1></div><table class="print-table"><thead><tr><th>DAY 1</th><th>DAY 2</th><th style="width:100px;">PRIZE POT (£)</th><th style="width:120px;">SECRET PAIRS (£)</th><th style="width:120px;">TOTAL</th></tr></thead><tbody><tr><td>${a.z1} ${a.p1}</td><td>${a.z2} ${a.p2}</td><td></td><td></td><td></td></tr></tbody></table></div>`; page.innerHTML += h; });
+        
+        let solosOnly = [];
+        appState.forEach(e => {
+            if (!e.isTeam) {
+                solosOnly.push(e);
+            }
+        });
+        
+        for (let i = 0; i < solosOnly.length; i += 4) {
+            let batch = [];
+            for (let j = 0; j < 4; j++) {
+                if (i + j < solosOnly.length) {
+                    batch.push(solosOnly[i + j]);
+                }
+            }
+            
+            const page = document.createElement('div'); 
+            page.style.pageBreakAfter = 'always';
+            
+            batch.forEach(e => { 
+                const a = e.anglers[0]; 
+                let aName = a.name || 'UNNAMED';
+                let mobStr = a.mobility ? ' [A]' : '';
+                
+                let h = `<div class="dispatch-slip">
+                            <div class="dispatch-header">
+                                <h1>SOLO COMPETITOR: ${aName} ${mobStr}</h1>
+                            </div>
+                            <table class="print-table">
+                                <thead>
+                                    <tr>
+                                        <th>DAY 1</th>
+                                        <th>DAY 2</th>
+                                        <th style="width:100px;">PRIZE POT (£)</th>
+                                        <th style="width:120px;">SECRET PAIRS (£)</th>
+                                        <th style="width:120px;">TOTAL</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>${a.z1} ${a.p1}</td>
+                                        <td>${a.z2} ${a.p2}</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>`; 
+                page.innerHTML += h; 
+            });
+            
             c.appendChild(page);
         }
-        document.body.classList.add('printing-dispatch'); window.print(); document.body.classList.remove('printing-dispatch');
+        
+        document.body.classList.add('printing-dispatch'); 
+        window.print(); 
+        document.body.classList.remove('printing-dispatch');
     }
 
     function exportToCSV() {
         let csv = "NAME,TEAM,DAY 1 ZONE,DAY 1 PEG,DAY 2 ZONE,DAY 2 PEG\n"; 
-        appState.forEach(g => { g.anglers.forEach(a => { csv += `${a.name || ''},${g.tName || 'SOLO'},${a.z1},${a.p1},${a.z2},${a.p2}\n`; }); });
-        const b = new Blob([csv], { type: 'text/csv' }); const l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = "LIST.csv"; l.click();
+        
+        appState.forEach(g => { 
+            g.anglers.forEach(a => { 
+                let aName = a.name || '';
+                let tName = g.tName || 'SOLO';
+                csv += `${aName},${tName},${a.z1},${a.p1},${a.z2},${a.p2}\n`; 
+            }); 
+        });
+        
+        const b = new Blob([csv], { type: 'text/csv' }); 
+        const l = document.createElement('a'); 
+        l.href = URL.createObjectURL(b); 
+        l.download = "LIST.csv"; 
+        l.click();
     }
 
     function exportAccountingCSV() {
         let csv = "NAME,TEAM,PRESENT,PAID\n"; 
-        appState.forEach(g => { g.anglers.forEach(a => { csv += `${a.name || ''},${g.tName || 'SOLO'},,\n`; }); });
-        const b = new Blob([csv], { type: 'text/csv' }); const l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = "ACCOUNTING.csv"; l.click();
+        
+        appState.forEach(g => { 
+            g.anglers.forEach(a => { 
+                let aName = a.name || '';
+                let tName = g.tName || 'SOLO';
+                csv += `${aName},${tName},,\n`; 
+            }); 
+        });
+        
+        const b = new Blob([csv], { type: 'text/csv' }); 
+        const l = document.createElement('a'); 
+        l.href = URL.createObjectURL(b); 
+        l.download = "ACCOUNTING.csv"; 
+        l.click();
     }
 
     function shareDraw() {
         const el = document.getElementById('resultsSection'); 
-        html2pdf().set({ margin: 0.2, filename: 'DRAW.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4' } }).from(el).save();
+        
+        let opt = { 
+            margin: 0.2, 
+            filename: 'DRAW.pdf', 
+            image: { type: 'jpeg', quality: 0.98 }, 
+            html2canvas: { scale: 2 }, 
+            jsPDF: { unit: 'in', format: 'a4' } 
+        };
+        
+        html2pdf().set(opt).from(el).save();
     }
 
     window.onload = () => {
         isAppReady = false; 
         let saved = localStorage.getItem('zonedraw_current_state_v12');
+        
         if (saved) {
             let e = JSON.parse(saved); 
+            
             document.getElementById('matchTitle').value = e.title || '';
             document.getElementById('accPegs1_a').value = e.safePegs1_a || ''; 
             document.getElementById('accPegs2_a').value = e.safePegs2_a || '';
             document.getElementById('accPegsAnchor').value = e.safePegsAnchor || ''; 
-            if(e.anchorZone) document.getElementById('anchorZoneSelect').value = e.anchorZone;
-            setMobilityMode(e.mobilityMode || 'A'); 
-            setDays(e.days || 2); 
+            
+            if (e.anchorZone) {
+                document.getElementById('anchorZoneSelect').value = e.anchorZone;
+            }
+            
+            let mobMode = e.mobilityMode || 'A';
+            setMobilityMode(mobMode); 
+            
+            let dCount = e.days || 2;
+            setDays(dCount); 
+            
             appState = e.data || []; 
             
-            accEnabled = e.accEnabled || false;
+            if (e.accEnabled) {
+                accEnabled = true;
+            } else {
+                accEnabled = false;
+            }
+            
             applyAccToggleUI();
 
             if (appState.length > 0) { 
                 document.getElementById('initMatchBtn').style.display = 'none'; 
                 document.getElementById('commandBar').style.display = 'flex'; 
                 document.getElementById('amendTools').style.display = 'flex';
-                document.getElementById('initTeams').value = appState.filter(item => item.isTeam).length;
-                document.getElementById('initIndivs').value = appState.filter(item => !item.isTeam).length;
+                
+                let tCount = 0;
+                let iCount = 0;
+                
+                appState.forEach(item => {
+                    if (item.isTeam) {
+                        tCount++;
+                    } else {
+                        iCount++;
+                    }
+                });
+                
+                document.getElementById('initTeams').value = tCount;
+                document.getElementById('initIndivs').value = iCount;
             }
-            if (appState.some(x => x.anglers.some(a => a.z1))) displayDraw(); else handleAmend(false);
+            
+            let hasDraw = false;
+            appState.forEach(x => {
+                x.anglers.forEach(a => {
+                    if (a.z1) hasDraw = true;
+                });
+            });
+            
+            if (hasDraw) {
+                displayDraw();
+            } else {
+                handleAmend(false);
+            }
         } else { 
             startNewDraw(); 
         }
-        setTimeout(() => { isAppReady = true; }, 500); 
+        
+        setTimeout(() => { 
+            isAppReady = true; 
+        }, 500); 
     };
 </script>
 </body>
