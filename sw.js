@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zonedraw-v12.04.28';
+const CACHE_NAME = 'zonedraw-v12.04.29';
 const ASSETS = [
     './',
     './index.html',
@@ -7,17 +7,37 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-    event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(ASSETS);
+        })
+    );
     self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-    event.waitUntil(caches.keys().then((names) => Promise.all(names.map((n) => { 
-        if(n !== CACHE_NAME) return caches.delete(n); 
-    }))));
+    event.waitUntil(
+        caches.keys().then((names) => {
+            let deletePromises = [];
+            names.forEach(name => {
+                if (name !== CACHE_NAME) {
+                    deletePromises.push(caches.delete(name));
+                }
+            });
+            return Promise.all(deletePromises);
+        })
+    );
     self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
-    event.respondWith(caches.match(event.request).then((res) => res || fetch(event.request)));
+    event.respondWith(
+        caches.match(event.request).then((res) => {
+            if (res) {
+                return res;
+            } else {
+                return fetch(event.request);
+            }
+        })
+    );
 });
