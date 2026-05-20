@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.31</title>
+    <title>ZONEDRAW v12.04.32</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -462,7 +462,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.31</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.32</span></div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
 </div>
@@ -815,7 +815,7 @@
             
             e.anglers.forEach(a => { 
                 if (a.name) {
-                    let accStr = a.mobility ? ' [A]' : '';
+                    let accStr = (accEnabled && a.mobility) ? ' [A]' : '';
                     let d1Str = `D1: ${a.z1} ${a.p1}`;
                     let d2Str = `D2: ${a.z2 || '-'} ${a.p2 || '-'}`;
                     txt += `  - ${a.name}${accStr} | ${d1Str} | ${d2Str}\n`; 
@@ -1235,7 +1235,7 @@
         // --- PRIORITY QUEUE SORTING ---
         appState.sort((a, b) => {
             let getPriority = (entry) => { 
-                let hasA = entry.anglers.some(ang => ang.mobility); 
+                let hasA = accEnabled && entry.anglers.some(ang => ang.mobility); 
                 if (entry.isTeam && hasA) {
                     return 4; // Priority 1: Teams with [A]
                 }
@@ -1291,13 +1291,15 @@
 
         // --- LOOK-AHEAD SAFE PEG ALLOCATION (THE CLASH MINIMIZER - MODE A ONLY) ---
         let aEntries = [];
-        appState.forEach(e => {
-            if (e.anglers.some(a => a.mobility)) {
-                aEntries.push(e);
-            }
-        });
+        if (accEnabled) {
+            appState.forEach(e => {
+                if (e.anglers.some(a => a.mobility)) {
+                    aEntries.push(e);
+                }
+            });
+        }
 
-        if (mobilityMode === 'A' && aEntries.length > 0) {
+        if (accEnabled && mobilityMode === 'A' && aEntries.length > 0) {
             let availableD1Safe = [];
             let availableD2Safe = [];
             
@@ -1371,7 +1373,7 @@
             const pools = d2 ? p2 : p1; 
             const zI = zones.indexOf(z);
             
-            if (mobilityMode === 'A') {
+            if (accEnabled && mobilityMode === 'A') {
                 const sL = d2 ? s2A : s1A;
                 if (mob) { 
                     let sI = pools[zI].p.findIndex(p => sL.includes(p)); 
@@ -1386,7 +1388,6 @@
                 }
             }
             
-            // For Mode B, or standard anglers, or fallback in Mode A, pop random peg.
             let popVal = pools[zI].p.pop();
             if (popVal !== undefined) {
                 return popVal;
@@ -1396,7 +1397,7 @@
         };
         
         const canS = (z, d, mob) => { 
-            if (!mob) return true; 
+            if (!accEnabled || !mob) return true; 
             let sL = d === 1 ? s1A : s2A; 
             return (d === 1 ? p1 : p2)[zones.indexOf(z)].p.some(p => sL.includes(p)); 
         };
@@ -1404,11 +1405,13 @@
         appState.forEach(e => {
             if (e.isTeam) {
                 let hasA = false;
-                e.anglers.forEach(a => {
-                    if (a.mobility) hasA = true;
-                });
+                if (accEnabled) {
+                    e.anglers.forEach(a => {
+                        if (a.mobility) hasA = true;
+                    });
+                }
                 
-                if (mobilityMode === 'B' && hasA) {
+                if (accEnabled && mobilityMode === 'B' && hasA) {
                     let d1Z = [null, null, null, null];
                     let d2Z = [null, null, null, null]; 
                     
@@ -1474,7 +1477,7 @@
                         a.p2 = pull(a.z2, 1, a.mobility); 
                     });
                     
-                } else if (mobilityMode === 'A' && hasA) {
+                } else if (accEnabled && mobilityMode === 'A' && hasA) {
                     
                     let mI = e.anglers.findIndex(a => a.mobility); 
                     let a = e.anglers[mI];
@@ -1567,11 +1570,12 @@
                 }
             } else {
                 let a = e.anglers[0]; 
+                let hasMobility = accEnabled && a.mobility;
                 
-                if (mobilityMode === 'B' && a.mobility) { 
+                if (accEnabled && mobilityMode === 'B' && hasMobility) { 
                     a.z1 = ancZ1;
                     a.z2 = ancZ2; 
-                } else if (mobilityMode === 'A' && a.mobility) {
+                } else if (accEnabled && mobilityMode === 'A' && hasMobility) {
                     if (a.preZ1) {
                         a.z1 = a.preZ1;
                     } else {
@@ -1627,8 +1631,8 @@
                     }
                 }
                 
-                a.p1 = pull(a.z1, 0, a.mobility); 
-                a.p2 = pull(a.z2, 1, a.mobility);
+                a.p1 = pull(a.z1, 0, hasMobility); 
+                a.p2 = pull(a.z2, 1, hasMobility);
             }
         });
         displayDraw();
@@ -1743,7 +1747,7 @@
                 }
                 
                 let allowedDouble = false;
-                if (a.mobility) {
+                if (accEnabled && a.mobility) {
                     allowedDouble = true;
                 }
                 
@@ -1778,6 +1782,7 @@
     }
 
     function isPegSafe(p, d) { 
+        if (!accEnabled) return false;
         if (mobilityMode === 'A') {
             let safeStr = '';
             if (d === 1) {
@@ -1888,7 +1893,7 @@
                 }
                 
                 let aName = a.name || '';
-                let aTag = a.mobility ? ' <span class="a-tag">[A]</span>' : '';
+                let aTag = (accEnabled && a.mobility) ? ' <span class="a-tag">[A]</span>' : '';
                 
                 let d1Bg = zColors[a.z1] || 'gray';
                 let d2Bg = zColors[a.z2] || 'gray';
@@ -1996,7 +2001,7 @@
         sortedState.forEach(e => { 
             e.anglers.forEach(a => { 
                 let aName = a.name || '';
-                let mobStr = a.mobility ? ' [A]' : '';
+                let mobStr = (accEnabled && a.mobility) ? ' [A]' : '';
                 let tName = e.tName || 'SOLO';
                 
                 h += `<tr>
@@ -2125,7 +2130,7 @@
                             
             e.anglers.forEach(a => { 
                 let aName = a.name || '';
-                let mobStr = a.mobility ? ' [A]' : '';
+                let mobStr = (accEnabled && a.mobility) ? ' [A]' : '';
                 
                 h += `<tr>
                         <td>${aName} ${mobStr}</td>
@@ -2169,7 +2174,7 @@
             batch.forEach(e => { 
                 const a = e.anglers[0]; 
                 let aName = a.name || 'UNNAMED';
-                let mobStr = a.mobility ? ' [A]' : '';
+                let mobStr = (accEnabled && a.mobility) ? ' [A]' : '';
                 
                 let h = `<div class="dispatch-slip">
                             <div class="dispatch-header">
@@ -2232,8 +2237,8 @@
             margin: 0.2, 
             filename: 'DRAW.pdf', 
             image: { type: 'jpeg', quality: 0.98 }, 
-            html2canvas: { scale: 2, windowWidth: 480 }, 
-            jsPDF: { unit: 'in', format: [5, 9] } 
+            html2canvas: { scale: 2, windowWidth: 480, scrollY: 0 }, 
+            jsPDF: { unit: 'in', format: 'a4' } 
         };
         
         html2pdf().set(opt).from(el).save();
