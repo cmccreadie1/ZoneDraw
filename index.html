@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.30</title>
+    <title>ZONEDRAW v12.04.31</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -462,7 +462,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.30</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.31</span></div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
 </div>
@@ -507,7 +507,7 @@
                 </div>
                 <div id="mobModeB" class="dt-opt" style="flex:1; flex-direction:column; border-width: 2px;" onclick="setMobilityMode('B')">
                     <span>STATIC ZONE ANCHOR</span>
-                    <span style="font-size:9px; opacity:0.7; margin-top:5px; text-transform:none;">A-Anglers pinned to specific zones.</span>
+                    <span style="font-size:9px; opacity:0.7; margin-top:5px; text-transform:none;">A-Anglers pinned to full specific zones.</span>
                 </div>
             </div>
 
@@ -519,7 +519,7 @@
             </div>
 
             <div id="modeBSetup" style="display:none; flex-direction:column; gap:10px; width:100%; margin-top:5px;">
-                <label style="font-size:10px; font-weight:900; color:#64748b; text-align:left; margin-bottom:-5px;">DAY 1 ANCHOR</label>
+                <label style="font-size:10px; font-weight:900; color:#64748b; text-align:left; margin-bottom:-5px;">DAY 1 FULL ZONE ANCHOR</label>
                 <div style="display:flex; gap:10px;">
                     <select id="anchorZoneSelect" style="border-width: 2px; flex: 1;">
                         <option value="RED">RED</option>
@@ -527,11 +527,10 @@
                         <option value="GREEN">GREEN</option>
                         <option value="BLUE">BLUE</option>
                     </select>
-                    <input type="text" id="accPegsAnchor" style="border-color:var(--a-color); border-width: 2px; flex: 1;" placeholder="DAY 1 SAFE PEGS" onblur="formatPegs(this)">
                 </div>
                 
                 <div id="day2AnchorContainer" style="display:flex; flex-direction:column; gap:10px; width:100%;">
-                    <label style="font-size:10px; font-weight:900; color:#64748b; text-align:left; margin-bottom:-5px; margin-top:5px;">DAY 2 ANCHOR</label>
+                    <label style="font-size:10px; font-weight:900; color:#64748b; text-align:left; margin-bottom:-5px; margin-top:5px;">DAY 2 FULL ZONE ANCHOR</label>
                     <div style="display:flex; gap:10px;">
                         <select id="anchorZoneSelect2" style="border-width: 2px; flex: 1;">
                             <option value="RED">RED</option>
@@ -539,7 +538,6 @@
                             <option value="GREEN">GREEN</option>
                             <option value="BLUE">BLUE</option>
                         </select>
-                        <input type="text" id="accPegsAnchor2" style="border-color:var(--a-color); border-width: 2px; flex: 1;" placeholder="DAY 2 SAFE PEGS" onblur="formatPegs(this)">
                     </div>
                 </div>
             </div>
@@ -714,9 +712,7 @@
             safePegs1_a: document.getElementById('accPegs1_a').value,
             safePegs2_a: document.getElementById('accPegs2_a').value,
             anchorZone: document.getElementById('anchorZoneSelect').value,
-            anchorZone2: document.getElementById('anchorZoneSelect2').value,
-            safePegsAnchor: document.getElementById('accPegsAnchor').value,
-            safePegsAnchor2: document.getElementById('accPegsAnchor2').value
+            anchorZone2: document.getElementById('anchorZoneSelect2').value
         };
         
         localStorage.setItem('zonedraw_current_state_v12', JSON.stringify(stateObj));
@@ -866,8 +862,6 @@
         document.getElementById('initIndivs').value = 0;
         document.getElementById('accPegs1_a').value = '';
         document.getElementById('accPegs2_a').value = '';
-        document.getElementById('accPegsAnchor').value = '';
-        document.getElementById('accPegsAnchor2').value = '';
         
         appState = []; 
         currentZoneSize = 0;
@@ -1265,12 +1259,6 @@
         const ancZ1 = document.getElementById('anchorZoneSelect').value;
         const ancZ2 = document.getElementById('anchorZoneSelect2').value;
         
-        let sAnch1_str = document.getElementById('accPegsAnchor').value || '';
-        let sAnch2_str = document.getElementById('accPegsAnchor2').value || '';
-        
-        let sAnch1 = sAnch1_str.match(/\d+/g) ? sAnch1_str.match(/\d+/g).map(Number) : [];
-        let sAnch2 = sAnch2_str.match(/\d+/g) ? sAnch2_str.match(/\d+/g).map(Number) : [];
-        
         let tot = 0; 
         appState.forEach(e => {
             if (e.isTeam) {
@@ -1301,8 +1289,7 @@
             return {z, p}; 
         });
 
-        // --- LOOK-AHEAD SAFE PEG ALLOCATION (THE CLASH MINIMIZER) ---
-        // We calculate optimal assignments for ALL [A] anglers before looping.
+        // --- LOOK-AHEAD SAFE PEG ALLOCATION (THE CLASH MINIMIZER - MODE A ONLY) ---
         let aEntries = [];
         appState.forEach(e => {
             if (e.anglers.some(a => a.mobility)) {
@@ -1314,7 +1301,6 @@
             let availableD1Safe = [];
             let availableD2Safe = [];
             
-            // Build absolute list of physically available safe pegs on Day 1
             zones.forEach(z => {
                 let zI = zones.indexOf(z);
                 let safeCount = 0;
@@ -1328,7 +1314,6 @@
                 }
             });
             
-            // Build absolute list of physically available safe pegs on Day 2
             zones.forEach(z => {
                 let zI = zones.indexOf(z);
                 let safeCount = 0;
@@ -1345,7 +1330,6 @@
             let bestPairing = [];
             let leastClashes = 999;
             
-            // Run 100 simulation attempts to find a combination with zero Double Zones
             for (let attempt = 0; attempt < 100; attempt++) {
                 let tempD1 = [...availableD1Safe].sort(() => Math.random() - 0.5);
                 let tempD2 = [...availableD2Safe].sort(() => Math.random() - 0.5);
@@ -1376,7 +1360,6 @@
                 }
             }
 
-            // Lock in the optimal assignments
             aEntries.forEach((e, idx) => {
                 let a = e.anglers.find(ang => ang.mobility);
                 a.preZ1 = bestPairing[idx].z1;
@@ -1388,19 +1371,7 @@
             const pools = d2 ? p2 : p1; 
             const zI = zones.indexOf(z);
             
-            if (mobilityMode === 'B') {
-                if (mob) {
-                    let targetZ = d2 ? ancZ2 : ancZ1;
-                    let targetPegs = d2 ? sAnch2 : sAnch1;
-                    
-                    if (z === targetZ) { 
-                        let sI = pools[zI].p.findIndex(p => targetPegs.includes(p)); 
-                        if (sI > -1) {
-                            return pools[zI].p.splice(sI, 1)[0]; 
-                        }
-                    }
-                }
-            } else if (mobilityMode === 'A') {
+            if (mobilityMode === 'A') {
                 const sL = d2 ? s2A : s1A;
                 if (mob) { 
                     let sI = pools[zI].p.findIndex(p => sL.includes(p)); 
@@ -1408,7 +1379,6 @@
                         return pools[zI].p.splice(sI, 1)[0]; 
                     }
                 } else if (sL.length > 0) { 
-                    // HARD RESERVE: Standard anglers MUST bypass safe pegs if possible
                     let nI = pools[zI].p.findIndex(p => !sL.includes(p)); 
                     if (nI > -1) {
                         return pools[zI].p.splice(nI, 1)[0]; 
@@ -1416,6 +1386,7 @@
                 }
             }
             
+            // For Mode B, or standard anglers, or fallback in Mode A, pop random peg.
             let popVal = pools[zI].p.pop();
             if (popVal !== undefined) {
                 return popVal;
@@ -1438,30 +1409,23 @@
                 });
                 
                 if (mobilityMode === 'B' && hasA) {
-                    let d1Z = [];
-                    let d2Z = []; 
-                    
-                    e.anglers.forEach(a => { 
-                        if (a.mobility) { 
-                            d1Z.push(ancZ1); 
-                            d2Z.push(ancZ2); 
-                        } else { 
-                            d1Z.push(undefined); 
-                            d2Z.push(undefined); 
-                        } 
-                    });
+                    let d1Z = [null, null, null, null];
+                    let d2Z = [null, null, null, null]; 
                     
                     e.anglers.forEach((a, i) => { 
-                        if (!a.mobility) { 
-                            let av1 = [];
-                            zones.forEach(z => {
-                                if (z !== ancZ1 && !d1Z.includes(z)) {
-                                    av1.push(z);
-                                }
-                            });
-                            d1Z[i] = av1[0]; 
+                        if (a.mobility) { 
+                            d1Z[i] = ancZ1; 
+                            d2Z[i] = ancZ2; 
                         } 
                     });
+                    
+                    let av1 = [];
+                    zones.forEach(z => {
+                        if (z !== ancZ1) {
+                            av1.push(z);
+                        }
+                    });
+                    av1.sort(() => Math.random() - 0.5);
                     
                     let sI = [];
                     e.anglers.forEach((a, i) => {
@@ -1470,16 +1434,38 @@
                         }
                     });
                     
-                    let availableDay2Zones = [];
+                    d1Z[sI[0]] = av1[0];
+                    d1Z[sI[1]] = av1[1];
+                    d1Z[sI[2]] = av1[2];
+                    
+                    let av2 = [];
                     zones.forEach(z => {
                         if (z !== ancZ2) {
-                            availableDay2Zones.push(z);
+                            av2.push(z);
                         }
                     });
                     
-                    d2Z[sI[0]] = availableDay2Zones[0];
-                    d2Z[sI[1]] = availableDay2Zones[1];
-                    d2Z[sI[2]] = availableDay2Zones[2];
+                    let bestD2Perm = [...av2];
+                    
+                    for (let attempt = 0; attempt < 20; attempt++) {
+                        av2.sort(() => Math.random() - 0.5);
+                        let isValid = true;
+                        
+                        for (let k = 0; k < 3; k++) {
+                            if (d1Z[sI[k]] === av2[k]) {
+                                isValid = false;
+                            }
+                        }
+                        
+                        if (isValid) {
+                            bestD2Perm = [...av2];
+                            break;
+                        }
+                    }
+                    
+                    d2Z[sI[0]] = bestD2Perm[0];
+                    d2Z[sI[1]] = bestD2Perm[1];
+                    d2Z[sI[2]] = bestD2Perm[2];
                     
                     e.anglers.forEach((a, i) => { 
                         a.z1 = d1Z[i]; 
@@ -1496,7 +1482,6 @@
                     let targetZ1 = a.preZ1;
                     let targetZ2 = a.preZ2;
                     
-                    // Fallbacks just in case there weren't enough safe pegs for everyone
                     if (!targetZ1) {
                         let randZones = [...zones].sort(() => Math.random() - 0.5);
                         targetZ1 = randZones[0];
@@ -1535,7 +1520,6 @@
                     
                     let bestD2Perm = [...remainingD2];
                     
-                    // Find a permutation of remaining D2 zones where nobody else gets a double zone
                     for (let attempt = 0; attempt < 20; attempt++) {
                         remainingD2.sort(() => Math.random() - 0.5);
                         let isValid = true;
@@ -1582,14 +1566,12 @@
                     });
                 }
             } else {
-                // Solo Processing
                 let a = e.anglers[0]; 
                 
                 if (mobilityMode === 'B' && a.mobility) { 
                     a.z1 = ancZ1;
                     a.z2 = ancZ2; 
                 } else if (mobilityMode === 'A' && a.mobility) {
-                    
                     if (a.preZ1) {
                         a.z1 = a.preZ1;
                     } else {
@@ -1610,7 +1592,6 @@
                             a.z2 = a.z1;
                         }
                     }
-                    
                 } else { 
                     let av = [];
                     zones.forEach(z => {
@@ -1797,16 +1778,7 @@
     }
 
     function isPegSafe(p, d) { 
-        if (mobilityMode === 'B') {
-            let anchorStr = '';
-            if (d === 1) {
-                anchorStr = document.getElementById('accPegsAnchor').value;
-            } else {
-                anchorStr = document.getElementById('accPegsAnchor2').value;
-            }
-            let anchorArr = anchorStr.match(/\d+/g) || [];
-            return anchorArr.includes(String(p));
-        } else {
+        if (mobilityMode === 'A') {
             let safeStr = '';
             if (d === 1) {
                 safeStr = document.getElementById('accPegs1_a').value;
@@ -1816,6 +1788,7 @@
             let safeArr = safeStr.match(/\d+/g) || [];
             return safeArr.includes(String(p));
         }
+        return false;
     }
 
     function toggleExportMenu() { 
@@ -2252,24 +2225,6 @@
         l.click();
     }
 
-    function exportAccountingCSV() {
-        let csv = "NAME,TEAM,PRESENT,PAID\n"; 
-        
-        appState.forEach(g => { 
-            g.anglers.forEach(a => { 
-                let aName = a.name || '';
-                let tName = g.tName || 'SOLO';
-                csv += `${aName},${tName},,\n`; 
-            }); 
-        });
-        
-        const b = new Blob([csv], { type: 'text/csv' }); 
-        const l = document.createElement('a'); 
-        l.href = URL.createObjectURL(b); 
-        l.download = "ACCOUNTING.csv"; 
-        l.click();
-    }
-
     function shareDraw() {
         const el = document.getElementById('resultsSection'); 
         
@@ -2301,9 +2256,6 @@
             if (e.anchorZone2) {
                 document.getElementById('anchorZoneSelect2').value = e.anchorZone2;
             }
-            
-            document.getElementById('accPegsAnchor').value = e.safePegsAnchor || ''; 
-            document.getElementById('accPegsAnchor2').value = e.safePegsAnchor2 || ''; 
             
             let mobMode = e.mobilityMode || 'A';
             setMobilityMode(mobMode); 
