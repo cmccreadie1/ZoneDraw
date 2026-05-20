@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.32</title>
+    <title>ZONEDRAW v12.04.33</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -419,6 +419,23 @@
             text-align: center; 
             box-shadow: 0 25px 50px rgba(0,0,0,0.25); 
         }
+
+        /* --- PDF MOBILE EXPORT OVERRIDES --- */
+        .mobile-pdf-export .bucket-grid {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 15px !important;
+        }
+        .mobile-pdf-export .zone-card {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            page-break-inside: avoid !important;
+        }
+        .mobile-pdf-export #resultsSection {
+            padding: 20px !important;
+            max-width: 800px !important;
+            margin: 0 auto !important;
+        }
         
         @media print { 
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -462,7 +479,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.32</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.33</span></div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
 </div>
@@ -2233,15 +2250,19 @@
     function shareDraw() {
         const el = document.getElementById('resultsSection'); 
         
+        el.classList.add('mobile-pdf-export');
+        
         let opt = { 
             margin: 0.2, 
             filename: 'DRAW.pdf', 
             image: { type: 'jpeg', quality: 0.98 }, 
-            html2canvas: { scale: 2, windowWidth: 480, scrollY: 0 }, 
-            jsPDF: { unit: 'in', format: 'a4' } 
+            html2canvas: { scale: 2, scrollY: 0 }, 
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } 
         };
         
-        html2pdf().set(opt).from(el).save();
+        html2pdf().set(opt).from(el).save().then(() => {
+            el.classList.remove('mobile-pdf-export');
+        });
     }
 
     window.onload = () => {
