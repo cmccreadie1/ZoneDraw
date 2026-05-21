@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.36</title>
+    <title>ZONEDRAW v12.04.37</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -26,6 +26,7 @@
             --blue-soft: #eff6ff;
             --pending: #f59e0b; 
             --a-color: #ca8a04; 
+            --c-color: #0ea5e9;
         }
 
         html {
@@ -263,6 +264,13 @@
             margin-left: 6px; 
             font-size: 12px; 
         }
+        
+        .c-tag { 
+            color: var(--c-color); 
+            font-weight: 900; 
+            margin-left: 6px; 
+            font-size: 12px; 
+        }
 
         .zone-key-container {
             display: flex;
@@ -484,6 +492,7 @@
             .peg-num { color: black !important; }
             .a-name { color: black !important; font-weight: 900 !important; }
             .a-tag { color: black !important; border: 1px solid black !important; padding: 2px 4px !important; border-radius: 4px !important; }
+            .c-tag { color: black !important; border: 1px solid black !important; padding: 2px 4px !important; border-radius: 4px !important; }
             
             .print-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             .print-table th { border: 2px solid black; padding: 12px; font-size: 14px; font-weight: 900; text-align: left; background: #f8fafc; }
@@ -504,7 +513,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.36</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.37</span></div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
 </div>
@@ -543,11 +552,11 @@
         <div id="accPanelWrapper" style="display:none; flex-direction:column; align-items:center; gap:15px; width:100%; max-width:700px; padding: 20px; background: #ffffff; border-radius: 12px; border: 3px solid var(--border); margin: 20px auto 0;">
             <span style="font-size:11px; opacity:0.6; text-transform:none; font-weight: 600;">Toggle to restrict anglers with physical requirements to specific safe pegs on the beach.</span>
             <div style="display:flex; justify-content:center; gap:10px; width:100%;">
-                <div id="mobModeA" class="dt-opt active" style="flex:1; flex-direction:column; border-width: 2px;" onclick="setMobilityMode('A')">
+                <div id="mobModeA" class="dt-opt active" style="flex:1; flex-direction:column; border-width: 2px;" onclick="setMobMode('A')">
                     <span>DISTRIBUTED PEGS</span>
                     <span style="font-size:9px; opacity:0.7; margin-top:5px; text-transform:none;">A-Anglers rotate zones on Day 2.</span>
                 </div>
-                <div id="mobModeB" class="dt-opt" style="flex:1; flex-direction:column; border-width: 2px;" onclick="setMobilityMode('B')">
+                <div id="mobModeB" class="dt-opt" style="flex:1; flex-direction:column; border-width: 2px;" onclick="setMobMode('B')">
                     <span>STATIC ZONE ANCHOR</span>
                     <span style="font-size:9px; opacity:0.7; margin-top:5px; text-transform:none;">A-Anglers pinned to full specific zones.</span>
                 </div>
@@ -857,10 +866,11 @@
             
             e.anglers.forEach(a => { 
                 if (a.name) {
+                    let capStr = a.captain ? ' [C]' : '';
                     let accStr = (accEnabled && a.mobility) ? ' [A]' : '';
                     let d1Str = `D1: ${a.z1} ${a.p1}`;
                     let d2Str = `D2: ${a.z2 || '-'} ${a.p2 || '-'}`;
-                    txt += `  - ${a.name}${accStr} | ${d1Str} | ${d2Str}\n`; 
+                    txt += `  - ${a.name}${capStr}${accStr} | ${d1Str} | ${d2Str}\n`; 
                 }
             });
             txt += "\n";
@@ -999,6 +1009,18 @@
         }
     }
 
+    function toggleCaptain(eId, aIdx) {
+        const entry = appState.find(e => e.id === eId);
+        if (entry) { 
+            let currentState = entry.anglers[aIdx].captain;
+            entry.anglers.forEach(a => a.captain = 0);
+            if (!currentState) {
+                entry.anglers[aIdx].captain = 1;
+            }
+            renderStateToScreen(); 
+        }
+    }
+
     function updateTeamName(id, val) {
         let entry = appState.find(e => e.id === id);
         if (entry) { 
@@ -1059,7 +1081,7 @@
             if (entry.isTeam) { 
                 h += `<button class="btn-tool" onclick="breakStateTeam('${entry.id}')" tabindex="-1" style="margin-left:12px;">🔗 UNLINK</button>`; 
             } else { 
-                h += `<button onclick="deleteStateEntry('${entry.id}')" tabindex="-1; background:none; border:none; color:#ef4444; font-weight:900; font-size:24px; cursor:pointer; margin-left:12px;">×</button>`; 
+                h += `<button onclick="deleteStateEntry('${entry.id}')" tabindex="-1" style="background:none; border:none; color:#ef4444; font-weight:900; font-size:24px; cursor:pointer; margin-left:12px;">×</button>`; 
             }
             
             h += `</div></div>`;
@@ -1071,11 +1093,15 @@
                 for (let i = 0; i < 4; i++) {
                     let mBg = entry.anglers[i].mobility ? 'var(--a-color)' : 'white';
                     let mColor = entry.anglers[i].mobility ? 'white' : 'var(--text)';
+
+                    let cBg = entry.anglers[i].captain ? 'var(--c-color)' : 'white';
+                    let cColor = entry.anglers[i].captain ? 'white' : 'var(--text)';
                     
                     let aName = entry.anglers[i].name || '';
                     
                     h += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
                             <input type="text" class="a-name-input" value="${aName}" placeholder="ANGLER ${i+1}" oninput="updateAnglerName('${entry.id}', ${i}, this.value)">
+                            <button class="btn-tool" onclick="toggleCaptain('${entry.id}', ${i})" tabindex="-1" style="padding:10px 14px; background:${cBg}; color:${cColor}; border-color:${cBg};">[C]</button>
                             <button class="btn-tool" onclick="toggleMobility('${entry.id}', ${i})" tabindex="-1" style="padding:10px 14px; background:${mBg}; color:${mColor}; border-color:${mBg};">[A]</button>
                           </div>`;
                 }
@@ -1279,15 +1305,15 @@
             let getPriority = (entry) => { 
                 let hasA = accEnabled && entry.anglers.some(ang => ang.mobility); 
                 if (entry.isTeam && hasA) {
-                    return 4; 
+                    return 4; // Priority 1: Teams with [A]
                 }
                 if (!entry.isTeam && hasA) {
-                    return 3; 
+                    return 3; // Priority 2: Solos with [A]
                 }
                 if (entry.isTeam) {
-                    return 2; 
+                    return 2; // Priority 3: Standard Teams
                 }
-                return 1; 
+                return 1; // Priority 4: Standard Solos
             };
             return getPriority(b) - getPriority(a);
         });
@@ -1436,6 +1462,12 @@
             } else {
                 return 99;
             }
+        };
+        
+        const canS = (z, d, mob) => { 
+            if (!accEnabled || !mob) return true; 
+            let sL = d === 1 ? s1A : s2A; 
+            return (d === 1 ? p1 : p2)[zones.indexOf(z)].p.some(p => sL.includes(p)); 
         };
         
         appState.forEach(e => {
@@ -1795,7 +1827,6 @@
                     if (pM1[a.z1].includes(a.p1)) {
                         errors.push(`PEG CLASH: '${a.z1} ${a.p1}' duplicated on DAY 1.`);
                     }
-                    pM1[a.z1].push(pM1);
                     pM1[a.z1].push(a.p1);
                 }
                 
@@ -1931,6 +1962,7 @@
                 
                 let aName = a.name || '';
                 let aTag = (accEnabled && a.mobility) ? ' <span class="a-tag">[A]</span>' : '';
+                let cTag = a.captain ? ' <span class="c-tag">[C]</span>' : '';
                 
                 let d1Bg = zColors[a.z1] || 'gray';
                 let d2Bg = zColors[a.z2] || 'gray';
@@ -1939,7 +1971,7 @@
                 let d2SafeTag = isPegSafe(a.p2, 2) ? '<br><small>[A]</small>' : '';
                 
                 h += `<div class="res-row">
-                        <span class="angler-name">${aName}${aTag}</span>
+                        <span class="angler-name">${aName}${cTag}${aTag}</span>
                         <div class="draw-pill ${p1C}" style="background:${d1Bg}" onclick="handleSwapClick('${g.id}',${aI},1)">
                             <span>${a.z1}</span> <span class="peg-num">${a.p1}</span>${d1SafeTag}
                         </div>
@@ -2040,10 +2072,11 @@
             e.anglers.forEach(a => { 
                 let aName = a.name || '';
                 let mobStr = (accEnabled && a.mobility) ? ' [A]' : '';
+                let capStr = a.captain ? ' [C]' : '';
                 let tName = e.tName || 'SOLO';
                 
                 h += `<tr>
-                        <td>${aName}${mobStr}</td>
+                        <td>${aName}${capStr}${mobStr}</td>
                         <td>${tName}</td>
                         <td><div class="print-checkbox"></div></td>
                         <td><div class="print-checkbox"></div></td>
@@ -2087,8 +2120,10 @@
                                 targetP = a.p2;
                             }
                             
+                            let capStr = a.captain ? ' [C]' : '';
+                            
                             list.push({ 
-                                n: a.name || '', 
+                                n: (a.name || '') + capStr, 
                                 t: e.tName, 
                                 p: targetP 
                             }); 
@@ -2169,9 +2204,10 @@
             e.anglers.forEach(a => { 
                 let aName = a.name || '';
                 let mobStr = (accEnabled && a.mobility) ? ' [A]' : '';
+                let capStr = a.captain ? ' [C]' : '';
                 
                 h += `<tr>
-                        <td>${aName} ${mobStr}</td>
+                        <td>${aName} ${capStr}${mobStr}</td>
                         <td>${a.z1} ${a.p1}</td>
                         <td>${a.z2} ${a.p2}</td>
                         <td></td>
@@ -2256,8 +2292,9 @@
         appState.forEach(g => { 
             g.anglers.forEach(a => { 
                 let aName = a.name || '';
+                let capStr = a.captain ? ' [C]' : '';
                 let tName = g.tName || 'SOLO';
-                csv += `${aName},${tName},${a.z1},${a.z2}\n`; 
+                csv += `${aName}${capStr},${tName},${a.z1},${a.z2}\n`; 
             }); 
         });
         
