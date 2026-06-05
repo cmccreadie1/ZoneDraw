@@ -1,43 +1,32 @@
-const CACHE_NAME = 'zonedraw-v12.04.40';
-const ASSETS = [
-    './',
-    './index.html',
-    './manifest.json',
-    'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
+const CACHE_NAME = 'zonedraw-v12.04.41';
+const urlsToCache = [
+  './',
+  './index.html',
+  './manifest.json'
 ];
 
-self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(ASSETS);
-        })
-    );
-    self.skipWaiting();
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+  );
 });
 
-self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        caches.keys().then((names) => {
-            let deletePromises = [];
-            names.forEach(name => {
-                if (name !== CACHE_NAME) {
-                    deletePromises.push(caches.delete(name));
-                }
-            });
-            return Promise.all(deletePromises);
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
         })
-    );
-    self.clients.claim();
+      );
+    })
+  );
 });
 
-self.addEventListener('fetch', (event) => {
-    event.respondWith(
-        caches.match(event.request).then((res) => {
-            if (res) {
-                return res;
-            } else {
-                return fetch(event.request);
-            }
-        })
-    );
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(response => response || fetch(event.request))
+  );
 });
