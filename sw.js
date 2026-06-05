@@ -1,32 +1,2611 @@
-const CACHE_NAME = 'zonedraw-v12.04.44';
-const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json'
-];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ZONEDRAW v12.04.45</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
-  );
-});
+    <style>
+        :root {
+            --bg: #e2e8f0; 
+            --card: #ffffff; 
+            --text: #0f172a;
+            --accent: #4f46e5; 
+            --accent-glow: rgba(79, 70, 229, 0.15);
+            --border: #e2e8f0;
+            --red-color: #ef4444;
+            --yellow-color: #f59e0b;
+            --green-color: #10b981;
+            --blue-color: #3b82f6;
+            --red-soft: #fef2f2;
+            --yellow-soft: #fffbeb;
+            --green-soft: #ecfdf5;
+            --blue-soft: #eff6ff;
+            --pending: #f59e0b; 
+            --a-color: #ca8a04; 
+            --c-color: #0ea5e9;
+        }
 
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-});
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 100px;
+            scroll-padding-bottom: 120px;
+        }
 
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(response => response || fetch(event.request))
-  );
-});
+        body { 
+            font-family: 'Inter', system-ui, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            padding: 0; 
+            text-transform: uppercase; 
+            line-height: 1.2; 
+            overflow-x: hidden; 
+        }
+
+        input, select { 
+            text-transform: uppercase; 
+            font-weight: 900 !important; 
+            color: var(--text); 
+            background: #f8fafc; 
+            border: 2px solid var(--border); 
+            border-radius: 8px; 
+            padding: 12px 14px; 
+            outline: none; 
+            transition: 0.2s; 
+            width: 100%; 
+            box-sizing: border-box; 
+            font-size: 14px; 
+        }
+
+        input:focus, select:focus { 
+            border-color: var(--accent); 
+            background: white; 
+            box-shadow: 0 0 0 3px var(--accent-glow); 
+        }
+
+        .fixed-header { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            z-index: 5000; 
+            background: white; 
+            border-bottom: 2px solid var(--border); 
+            padding: 12px 20px; 
+        }
+
+        .header-content { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            max-width: 1400px; 
+            margin: 0 auto; 
+        }
+
+        .brand-name { 
+            font-size: 20px; 
+            font-weight: 900; 
+            letter-spacing: -0.5px; 
+            color: var(--text); 
+            display: flex; 
+            align-items: center; 
+        }
+
+        .v-tag { 
+            font-size: 14px; 
+            color: var(--accent); 
+            margin-left: 10px; 
+            font-weight: 900; 
+        }
+
+        #entrySection, #resultsSection, #dispatchSection, #rosterSection, #registrationPrintSection { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 70px 20px 140px; 
+            display: none; 
+        }
+
+        .control-panel { 
+            background: var(--card); 
+            border-radius: 16px; 
+            padding: 20px 25px; 
+            border: 2px solid var(--border); 
+            text-align: center; 
+            margin-bottom: 20px; 
+        }
+
+        .bucket-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+            gap: 15px; 
+        }
+
+        .duration-toggle { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 8px; 
+            background: #f8fafc; 
+            padding: 8px; 
+            border-radius: 12px; 
+            width: 100%; 
+            margin: 0 auto; 
+            border: 2px solid var(--border); 
+        }
+
+        .dt-opt { 
+            padding: 10px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: 900; 
+            font-size: 13px; 
+            transition: 0.2s; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: var(--text); 
+            background: white; 
+            border: 2px solid transparent; 
+        }
+
+        .dt-opt.active { 
+            border-color: var(--accent); 
+            color: var(--accent); 
+            background: rgba(79, 70, 229, 0.05); 
+        }
+
+        .zone-card { 
+            background: var(--card); 
+            border: 2px solid var(--border); 
+            border-top-width: 6px; 
+            border-radius: 12px; 
+            padding: 10px; 
+            position: relative; 
+            transition: 0.2s; 
+            break-inside: avoid; 
+            page-break-inside: avoid; 
+            overflow: hidden; 
+        }
+
+        .zone-card.solo-card { 
+            height: fit-content; 
+            align-self: start; 
+        }
+
+        .zone-header { 
+            font-size: 11px; 
+            font-weight: 900; 
+            color: #64748b; 
+            margin: -10px -10px 10px -10px; 
+            padding: 8px 12px; 
+            border-bottom: 2px solid var(--border); 
+            border-radius: 10px 10px 0 0; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            transition: 0.2s; 
+        }
+
+        .res-row { 
+            display: grid; 
+            grid-template-columns: 1fr 100px 100px; 
+            gap: 8px; 
+            align-items: center; 
+            padding: 5px 8px; 
+            border-bottom: 2px solid #f8fafc; 
+        }
+
+        .res-row:last-child { 
+            border-bottom: none; 
+        }
+
+        .angler-name { 
+            font-size: 13px; 
+            font-weight: 900; 
+            letter-spacing: 0.5px; 
+            pointer-events: none; 
+        }
+
+        .draw-pill { 
+            padding: 4px 8px; 
+            border-radius: 8px; 
+            font-size: 10px; 
+            font-weight: 900; 
+            text-align: center; 
+            border: 2px solid transparent; 
+            color: white; 
+            cursor: default;
+            transition: 0.2s; 
+        }
+
+        .draw-pill.swap-active { 
+            cursor: pointer; 
+            border: 2px dashed #0f172a; 
+            opacity: 0.9;
+        }
+
+        .draw-pill.swap-active:hover { 
+            opacity: 1;
+            transform: scale(1.05); 
+        }
+
+        .draw-pill.swap-selected { 
+            border: 3px solid #0f172a !important; 
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            opacity: 1;
+            z-index: 10;
+            position: relative;
+        }
+
+        .clash-glow { 
+            border: 3px solid #ef4444 !important; 
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.8) !important; 
+            background: #fef2f2 !important; 
+            color: #ef4444 !important; 
+        }
+
+        .peg-num { 
+            font-size: 16px; 
+            font-weight: 900; 
+            margin-left: 6px; 
+            vertical-align: middle; 
+        }
+
+        @keyframes pulse { 
+            0% { opacity: 1; } 
+            50% { opacity: 0.5; } 
+            100% { opacity: 1; } 
+        }
+
+        .a-name { 
+            color: var(--a-color); 
+        }
+
+        .a-tag { 
+            color: var(--a-color); 
+            font-weight: 900; 
+            margin-left: 6px; 
+            font-size: 12px; 
+        }
+        
+        .c-tag { 
+            color: var(--c-color); 
+            font-weight: 900; 
+            margin-left: 6px; 
+            font-size: 12px; 
+        }
+
+        .zone-key-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            width: 100%;
+        }
+
+        .legend-box {
+            display: flex;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 16px;
+            gap: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .swatch {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .l-text {
+            font-weight: 900;
+            font-size: 12px;
+            color: var(--text);
+            letter-spacing: 0.5px;
+        }
+
+        .anomaly-banner {
+            background: #fef2f2;
+            border: 2px solid #ef4444;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .anomaly-banner h3 {
+            color: #ef4444;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .anomaly-banner ul {
+            color: #0f172a;
+            font-size: 12px;
+            font-weight: 700;
+            margin: 0;
+            padding-left: 20px;
+            text-transform: none;
+        }
+
+        .anomaly-banner li {
+            margin-bottom: 5px;
+        }
+
+        .btn-action { 
+            background: var(--accent); 
+            border: 2px solid var(--accent); 
+            color: white; 
+            font-weight: 900; 
+            padding: 16px 32px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            font-size: 14px; 
+            letter-spacing: 0.5px; 
+        }
+
+        .btn-action:active { 
+            transform: translateY(2px); 
+        }
+
+        .btn-action:disabled { 
+            background: #94a3b8; 
+            border-color: #94a3b8; 
+            cursor: not-allowed; 
+        }
+
+        .btn-action-outline { 
+            background: white; 
+            border: 2px solid var(--accent); 
+            color: var(--accent); 
+            font-weight: 900; 
+            padding: 16px 32px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            font-size: 14px; 
+            letter-spacing: 0.5px; 
+        }
+        
+        .btn-tool { 
+            background: white; 
+            border: 2px solid var(--border); 
+            color: var(--text); 
+            font-size: 11px; 
+            font-weight: 900; 
+            padding: 8px 14px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: 0.2s; 
+        }
+
+        .btn-tool:hover { 
+            border-color: var(--accent); 
+            color: var(--accent); 
+        }
+
+        .command-bar { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            z-index: 5000; 
+            background: white; 
+            border-top: 2px solid var(--border); 
+            padding: 15px 35px; 
+            display: none; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        
+        .group-label { 
+            grid-column: 1 / -1; 
+            font-size: 1.4rem; 
+            font-weight: 900; 
+            color: var(--text); 
+            border-bottom: 3px solid var(--text); 
+            padding-bottom: 10px; 
+            margin: 30px 0 15px; 
+            letter-spacing: 1px; 
+        }
+
+        .entry-group-label { 
+            font-size: 1.1rem; 
+            font-weight: 900; 
+            color: #64748b; 
+            margin: 15px 0 10px; 
+            letter-spacing: 1px; 
+            text-align: left; 
+        }
+
+        .modal-overlay { 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(15, 23, 42, 0.85); 
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px); 
+            z-index: 9999; 
+            display: none; 
+            align-items: center; 
+            justify-content: center; 
+        }
+
+        .modal-content { 
+            background: var(--card); 
+            border-radius: 24px; 
+            padding: 40px; 
+            width: 90%; 
+            max-width: 600px; 
+            text-align: center; 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25); 
+        }
+
+        /* --- PDF MOBILE EXPORT OVERRIDES --- */
+        .mobile-pdf-export .no-print {
+            display: none !important;
+        }
+        .mobile-pdf-export .bucket-grid {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 20px !important;
+        }
+        .mobile-pdf-export .zone-card {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            page-break-inside: avoid !important;
+        }
+        .mobile-pdf-export #resultsSection {
+            padding: 10px !important;
+            width: 100% !important;
+            max-width: 420px !important;
+            margin: 0 !important;
+        }
+        .mobile-pdf-export .res-row {
+            grid-template-columns: 1fr auto auto !important;
+            gap: 15px !important;
+            padding: 10px 5px !important;
+        }
+        .mobile-pdf-export .res-row:nth-child(2) span {
+            font-size: 13px !important;
+        }
+        .mobile-pdf-export .angler-name {
+            font-size: 17px !important;
+        }
+        .mobile-pdf-export .draw-pill {
+            font-size: 13px !important;
+            padding: 8px 14px !important;
+        }
+        .mobile-pdf-export .peg-num {
+            font-size: 22px !important;
+        }
+        .mobile-pdf-export .zone-header {
+            font-size: 15px !important;
+        }
+        
+        @media print { 
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .no-print { display: none !important; } 
+            
+            body.printing-rosters > :not(#rosterSection) { display: none !important; }
+            #rosterSection { display: block !important; }
+            
+            body.printing-registration > :not(#registrationPrintSection) { display: none !important; }
+            #registrationPrintSection { display: block !important; }
+            
+            body.printing-dispatch #dispatchSection { display: block !important; }
+            body.printing-dispatch > :not(#dispatchSection) { display: none !important; }
+            
+            body { background: white !important; margin: 0; color: black !important; }
+            
+            .zone-card { border: 3px solid black !important; background: white !important; color: black !important; box-shadow: none !important; break-inside: avoid; page-break-inside: avoid; }
+            .zone-header { background: white !important; border-bottom: 2px solid black !important; color: black !important; }
+            .res-row { border-bottom: 1px solid #ccc !important; }
+            .draw-pill { border: 2px solid black !important; color: black !important; background: white !important; }
+            .peg-num { color: black !important; }
+            .a-name { color: black !important; font-weight: 900 !important; }
+            .a-tag { color: black !important; border: 1px solid black !important; padding: 2px 4px !important; border-radius: 4px !important; }
+            .c-tag { color: black !important; border: 1px solid black !important; padding: 2px 4px !important; border-radius: 4px !important; }
+            
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            .print-table th { border: 2px solid black; padding: 12px; font-size: 14px; font-weight: 900; text-align: left; background: #f8fafc; }
+            .print-table td { border: 1px solid black; padding: 10px 12px; font-size: 14px; font-weight: 800; height: 25px; }
+            .print-checkbox { display: inline-block; width: 20px; height: 20px; border: 2px solid black; margin: 0 auto; }
+            
+            .dispatch-slip { padding: 30px; border: 4px solid black; margin-bottom: 30px; page-break-inside: avoid; }
+            .dispatch-header { border-bottom: 4px solid black; padding-bottom: 10px; margin-bottom: 20px; }
+            .dispatch-header h1 { font-size: 24px; margin: 0; }
+            .dispatch-header h2 { font-size: 18px; margin: 5px 0 0 0; }
+            
+            .roster-page { page-break-after: always; padding: 20px; }
+            .roster-header { border-bottom: 4px solid black; margin-bottom: 20px; padding-bottom: 10px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="fixed-header no-print">
+    <div class="header-content">
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.45</span></div>
+        <div id="saveIndicator" style="position: fixed; top: 15px; right: 20px; background: #4caf50; color: white; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 9999; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✓ SAVED</div>
+        <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
+    </div>
+</div>
+
+<div id="entrySection" class="no-print">
+    <div id="editDrawBanner" style="display:none; background:#ecfdf5; border: 2px solid #10b981; border-radius:12px; padding: 15px; margin-bottom: 20px; text-align: center;">
+        <h3 style="color:#10b981; margin:0 0 5px 0; font-size: 16px;">EDITING CURRENT DRAW</h3>
+        <p style="color:#0f172a; margin:0; font-size: 12px; text-transform: none; font-weight: 600;">You can safely change names, update mobility [A] tags, and link/unlink teams. Your existing peg numbers are locked and will not change.</p>
+    </div>
+
+    <div class="control-panel" id="setupPanel">
+        <input type="text" id="matchTitle" style="font-size:20px; text-align:center; margin-top:0; border-width: 3px; padding: 12px;" placeholder="COMPETITION IDENTITY (e.g. SCOTTISH SHORE CHAMPIONSHIP 2026)">
+        
+        <div style="display:flex; justify-content:center; gap:20px; margin-top:20px; align-items:flex-end; flex-wrap:wrap;">
+            <div>
+                <label style="display:block; margin-bottom:8px; font-size: 11px; font-weight: 900; color: #64748b;">DURATION</label>
+                <div class="duration-toggle" style="width: 180px; margin:0;">
+                    <div id="dayOpt1" class="dt-opt" onclick="setDays(1)">1 DAY</div>
+                    <div id="dayOpt2" class="dt-opt active" onclick="setDays(2)">2 DAYS</div>
+                </div>
+            </div>
+            <div>
+                <label style="display:block; margin-bottom:8px; font-size: 11px; font-weight: 900; color: #64748b;">TEAMS</label>
+                <input type="number" id="initTeams" value="0" style="width:90px; text-align:center; font-size: 18px; padding: 9px 10px;">
+            </div>
+            <div>
+                <label style="display:block; margin-bottom:8px; font-size: 11px; font-weight: 900; color: #64748b;">SOLOS</label>
+                <input type="number" id="initIndivs" value="0" style="width:90px; text-align:center; font-size: 18px; padding: 9px 10px;">
+            </div>
+        </div>
+
+        <div style="margin-top: 25px; display:flex; flex-direction:column; align-items:center;">
+            <button id="accToggleBtn" class="btn-action-outline" onclick="toggleAccPanel()" style="width: 100%; max-width: 700px;" type="button">ACCESSIBILITY MODE [OFF]</button>
+        </div>
+
+        <div id="accPanelWrapper" style="display:none; flex-direction:column; align-items:center; gap:15px; width:100%; max-width:700px; padding: 20px; background: #ffffff; border-radius: 12px; border: 3px solid var(--border); margin: 20px auto 0;">
+            <span style="font-size:11px; opacity:0.6; text-transform:none; font-weight: 600;">Toggle to restrict anglers with physical requirements to specific safe pegs on the beach.</span>
+            <div style="display:flex; justify-content:center; gap:10px; width:100%;">
+                <div id="mobModeA" class="dt-opt active" style="flex:1; flex-direction:column; border-width: 2px;" onclick="setMobilityMode('A')">
+                    <span>DISTRIBUTED PEGS</span>
+                    <span style="font-size:9px; opacity:0.7; margin-top:5px; text-transform:none;">A-Anglers rotate zones on Day 2.</span>
+                </div>
+                <div id="mobModeB" class="dt-opt" style="flex:1; flex-direction:column; border-width: 2px;" onclick="setMobilityMode('B')">
+                    <span>STATIC ZONE ANCHOR</span>
+                    <span style="font-size:9px; opacity:0.7; margin-top:5px; text-transform:none;">A-Anglers pinned to full specific zones.</span>
+                </div>
+            </div>
+
+            <div id="modeASetup" style="display:flex; flex-direction:column; gap:10px; width:100%; margin-top:5px;">
+                <input type="text" id="accPegs1_a" style="border-color:var(--a-color); border-width: 2px;" placeholder="DAY 1 SAFE PEGS" onblur="formatPegs(this)">
+                <div id="day2PegsContainer" style="display:flex; width:100%;">
+                    <input type="text" id="accPegs2_a" style="border-color:var(--a-color); border-width: 2px;" placeholder="DAY 2 SAFE PEGS" onblur="formatPegs(this)">
+                </div>
+            </div>
+
+            <div id="modeBSetup" style="display:none; flex-direction:column; gap:10px; width:100%; margin-top:5px;">
+                <label style="font-size:10px; font-weight:900; color:#64748b; text-align:left; margin-bottom:-5px;">DAY 1 FULL ZONE ANCHOR</label>
+                <div style="display:flex; gap:10px;">
+                    <select id="anchorZoneSelect" style="border-width: 2px; flex: 1;">
+                        <option value="RED">RED</option>
+                        <option value="YELLOW">YELLOW</option>
+                        <option value="GREEN">GREEN</option>
+                        <option value="BLUE">BLUE</option>
+                    </select>
+                </div>
+                
+                <div id="day2AnchorContainer" style="display:flex; flex-direction:column; gap:10px; width:100%;">
+                    <label style="font-size:10px; font-weight:900; color:#64748b; text-align:left; margin-bottom:-5px; margin-top:5px;">DAY 2 FULL ZONE ANCHOR</label>
+                    <div style="display:flex; gap:10px;">
+                        <select id="anchorZoneSelect2" style="border-width: 2px; flex: 1;">
+                            <option value="RED">RED</option>
+                            <option value="YELLOW">YELLOW</option>
+                            <option value="GREEN">GREEN</option>
+                            <option value="BLUE">BLUE</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button id="initMatchBtn" class="btn-action" style="margin-top:25px; font-size: 16px; padding: 16px 32px;" onclick="bulkInit()">INITIALIZE ENTRY SHEET</button>
+    </div>
+    
+    <div id="entryList">
+        <div id="entryTeamsContainer" style="display:none;">
+            <div class="entry-group-label">TEAM MODULES</div>
+            <div id="entryTeamsBucket" class="bucket-grid"></div>
+        </div>
+        <div id="entrySolosContainer" style="display:none;">
+            <div class="entry-group-label" style="margin-top: 30px;">SOLO COMPETITORS</div>
+            <div id="entrySolosBucket" class="bucket-grid"></div>
+        </div>
+    </div>
+</div>
+
+<div id="resultsSection">
+    <div class="no-print" style="display:flex; gap:12px; justify-content:center; margin-bottom:30px; flex-wrap:wrap;">
+        <button onclick="handleSafeEdit()" class="btn-action-outline" style="border-color:#10b981; color:#10b981;">✏️ AMEND NAMES</button>
+        <button onclick="injectLatecomer(true)" class="btn-action-outline" style="border-color:#10b981; color:#10b981;">➕ LATE TEAM</button>
+        <button onclick="injectLatecomer(false)" class="btn-action-outline" style="border-color:#10b981; color:#10b981;">➕ LATE SOLO</button>
+        <button onclick="showRedrawModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444;">⚠️ RE-DRAW MATCH</button>
+        <button onclick="toggleSwapMode()" id="swapBtn" class="btn-action-outline" style="border-color:#8b5cf6; color:#8b5cf6;">SWAP PEGS</button>
+        <button onclick="toggleExportMenu()" id="exportToggleBtn" class="btn-action" style="background:#0f172a; border-color:#0f172a;">🖨️ OUTPUT MENU</button>
+    </div>
+    <div id="exportMenu" class="no-print" style="display:none; gap:12px; justify-content:center; margin-bottom:30px; padding:20px; background:white; border-radius:16px; flex-wrap:wrap; border:3px solid var(--border);">
+        <button onclick="generateRegistrationSheet()" class="btn-action" style="background:#10b981;">PRINT REGISTRATION</button>
+        <button onclick="shareDraw()" class="btn-action" style="background:#64748b;">SHARE PDF</button>
+        <button onclick="generateDispatchSlips()" class="btn-action" style="background:#0ea5e9;">TEAM SLIPS</button>
+        <button onclick="printZoneRosters()" class="btn-action" style="background:#0ea5e9;">ZONE ROSTERS</button>
+        <button onclick="exportToCSV()" class="btn-action-outline" style="border-color:#10b981; color:#10b981;">EXCEL COMPETITOR LIST</button>
+    </div>
+    <div id="swapPrompt" class="no-print" style="display:none; text-align:center; background:#8b5cf6; color:white; padding:15px; font-weight:900; margin-bottom:20px; border-radius:12px;">SWAP MODE ACTIVE (Select a specific day peg to swap)</div>
+    
+    <div id="anomalyBanner" class="anomaly-banner no-print">
+        <h3>⚠️ DRAW ANOMALIES DETECTED</h3>
+        <ul id="anomalyList"></ul>
+    </div>
+
+    <h1 id="resTitle" style="text-align:center; font-size:1.8rem; margin: 10px 0 15px; color: black;"></h1>
+    
+    <div class="zone-key-container no-print">
+        <div class="legend-box">
+            <div class="legend-item"><span class="swatch" style="background:var(--red-color);"></span><span id="keyRed" class="l-text">RED</span></div>
+            <div class="legend-item"><span class="swatch" style="background:var(--yellow-color);"></span><span id="keyYellow" class="l-text">YELLOW</span></div>
+            <div class="legend-item"><span class="swatch" style="background:var(--green-color);"></span><span id="keyGreen" class="l-text">GREEN</span></div>
+            <div class="legend-item"><span class="swatch" style="background:var(--blue-color);"></span><span id="keyBlue" class="l-text">BLUE</span></div>
+        </div>
+    </div>
+
+    <div id="resultsArea">
+        <div id="teamsBucketContainer" style="display:none;">
+            <div class="group-label">TEAMS</div>
+            <div id="teamsBucket" class="bucket-grid"></div>
+        </div>
+        <div id="solosBucketContainer" style="display:none; margin-top:40px;">
+            <div class="group-label">SOLOS</div>
+            <div id="solosBucket" class="bucket-grid"></div>
+        </div>
+    </div>
+</div>
+
+<div id="registrationPrintSection" class="no-print"></div>
+<div id="dispatchSection" class="no-print"></div>
+<div id="rosterSection" class="no-print"></div>
+
+<div id="commandBar" class="command-bar no-print">
+    <div style="display:flex; gap:30px; align-items:center;">
+        <div style="display:flex; flex-direction:column;">
+            <span style="font-size:11px; font-weight:900; color:#64748b;">ANGLERS</span>
+            <span id="tkAnglers" style="font-size:28px; font-weight:900; color:var(--text);">0</span>
+        </div>
+        <div id="amendTools" style="display:none; gap:10px;">
+            <button class="btn-action-outline" onclick="addNewStateItem(true)">+ TEAM</button>
+            <button class="btn-action-outline" onclick="addNewStateItem(false)">+ SOLO</button>
+            <button id="undoBtn" class="btn-action-outline" style="border-color:#f59e0b; color:#f59e0b; display:none;" onclick="undoLastAction()">↩️ UNDO</button>
+        </div>
+    </div>
+    
+    <div id="actionBtnArea" style="display:flex; flex-direction:column; align-items:flex-end;">
+        <div id="teamClashWarning" style="display:none; color:#ef4444; font-size:12px; font-weight:900; margin-bottom:8px;">⚠️ STATIC MODE CLASH: MAX 1 [A] PER TEAM</div>
+        <div style="display:flex; gap:15px; align-items:flex-start;">
+            <button class="btn-action-outline" id="mergeBtn" style="display:none; border-color:#10b981; color:#10b981; padding: 20px 40px; height: fit-content;" onclick="mergeSelected()">LINK TEAM (4)</button>
+            
+            <div id="viewDrawContainer" style="display:none; flex-direction:column; align-items:center; max-width: 280px;">
+                <button class="btn-action" id="viewDrawBtn" onclick="displayDraw()" style="background:#10b981; border-color:#10b981; font-size: 16px; padding: 20px 40px; width: 100%;">✅ SAVE EDITS & RETURN</button>
+            </div>
+
+            <div id="processDrawContainer" style="display:flex; flex-direction:column; align-items:center;">
+                <button class="btn-action" id="mainActionBtn" onclick="initiateShuffle()" style="font-size: 16px; padding: 20px 40px; width: 100%;">PROCESS DRAW</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="shuffleOverlay" style="position:fixed; inset:0; background:rgba(255, 255, 255, 0.98); z-index:9000; display:none; flex-direction:column; align-items:center; justify-content:center;">
+    <h2 style="font-size:2.5rem; font-weight:900; color:var(--text);">EXECUTING...</h2>
+    <div style="width:400px; height:8px; background:#f1f5f9; border-radius:10px; overflow:hidden; margin-top:30px;">
+        <div id="pBar" style="height:100%; width:0%; background:var(--accent); transition:0.1s;"></div>
+    </div>
+</div>
+
+<div id="redrawModal" class="modal-overlay no-print">
+    <div class="modal-content">
+        <h2 style="color: #ef4444; font-size: 28px; margin-top: 0;">⚠️ REDRAW CONFIRMATION</h2>
+        <p style="font-size: 16px; font-weight: 700; margin-bottom: 30px; text-transform: none;">This permanently wipes all pegs so you can add latecomers or change rules. Proceed?</p>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <button onclick="closeRedrawModal()" class="btn-action">CANCEL</button>
+            <button onclick="executePegWipe()" class="btn-action-outline" style="color: #ef4444; border-color: #ef4444;">YES, WIPE PEGS & REDRAW</button>
+        </div>
+    </div>
+</div>
+
+<div id="wipeModal" class="modal-overlay no-print">
+    <div class="modal-content">
+        <h2 style="color: #ef4444; font-size: 28px; margin-top: 0;">🏁 COMPLETE & RESET</h2>
+        <p style="font-size: 16px; font-weight: 700; margin-bottom: 30px; text-transform: none;">The app will now download a full report of the draw details and then reset itself for a new competition. Proceed?</p>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <button onclick="closeWipeModal()" class="btn-action">CANCEL</button>
+            <button onclick="executeNuclearWipe()" class="btn-action-outline" style="color: #ef4444; border-color: #ef4444;">YES, DOWNLOAD BACKUP & RESET</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const zones = ['RED', 'YELLOW', 'GREEN', 'BLUE'];
+    
+    const zColors = { 
+        'RED': 'var(--red-color)', 
+        'YELLOW': 'var(--yellow-color)', 
+        'GREEN': 'var(--green-color)', 
+        'BLUE': 'var(--blue-color)' 
+    };
+    
+    const zSofts = { 
+        'RED': 'var(--red-soft)', 
+        'YELLOW': 'var(--yellow-soft)', 
+        'GREEN': 'var(--green-soft)', 
+        'BLUE': 'var(--blue-soft)' 
+    };
+    
+    let isAppReady = false; 
+    let appState = []; 
+    let matchDays = 2;
+    let currentZoneSize = 0; 
+    let isSwapMode = false;
+    let swapObj1 = null; 
+    let mobilityMode = 'A'; 
+    let accEnabled = false; 
+    let trashCan = null;
+
+    const genId = () => {
+        return 'id_' + Math.random().toString(36).substr(2, 9);
+    };
+
+    function persistState() {
+        if (!isAppReady) {
+            return; 
+        }
+
+        const stateObj = { 
+            title: document.getElementById('matchTitle').value || '',
+            data: appState, 
+            days: matchDays, 
+            zoneSize: currentZoneSize, 
+            mobilityMode: mobilityMode,
+            accEnabled: accEnabled,
+            safePegs1_a: document.getElementById('accPegs1_a').value,
+            safePegs2_a: document.getElementById('accPegs2_a').value,
+            anchorZone: document.getElementById('anchorZoneSelect').value,
+            anchorZone2: document.getElementById('anchorZoneSelect2').value
+        };
+        
+        localStorage.setItem('zonedraw_current_state_v12', JSON.stringify(stateObj));
+    }
+
+    function formatPegs(el) {
+        let val = el.value;
+        let nums = val.match(/\d+/g);
+        if (nums) {
+            el.value = nums.join(', ');
+        } else {
+            el.value = '';
+        }
+    }
+
+    function toggleAccPanel() {
+        accEnabled = !accEnabled;
+        applyAccToggleUI();
+    }
+
+    function applyAccToggleUI() {
+        const panel = document.getElementById('accPanelWrapper');
+        const btn = document.getElementById('accToggleBtn');
+        
+        if (accEnabled) {
+            panel.style.display = 'flex';
+            btn.innerText = 'ACCESSIBILITY MODE [ON]';
+            btn.style.background = 'var(--accent)';
+            btn.style.color = 'white';
+        } else {
+            panel.style.display = 'none';
+            btn.innerText = 'ACCESSIBILITY MODE [OFF]';
+            btn.style.background = 'white';
+            btn.style.color = 'var(--accent)';
+        }
+    }
+
+    function setMobilityMode(m) {
+        mobilityMode = m;
+        
+        document.getElementById('mobModeA').classList.toggle('active', m === 'A');
+        document.getElementById('mobModeB').classList.toggle('active', m === 'B');
+        
+        if (m === 'A') {
+            document.getElementById('modeASetup').style.display = 'flex';
+            document.getElementById('modeBSetup').style.display = 'none';
+        } else {
+            document.getElementById('modeASetup').style.display = 'none';
+            document.getElementById('modeBSetup').style.display = 'flex';
+        }
+        
+        checkTeamClash();
+    }
+
+    function showRedrawModal() {
+        document.getElementById('redrawModal').style.display = 'flex';
+    }
+
+    function closeRedrawModal() {
+        document.getElementById('redrawModal').style.display = 'none';
+    }
+
+    function showWipeModal() { 
+        document.getElementById('wipeModal').style.display = 'flex'; 
+    }
+    
+    function closeWipeModal() { 
+        document.getElementById('wipeModal').style.display = 'none'; 
+    }
+
+    function handleSafeEdit() {
+        handleAmend(true); 
+    }
+
+    function executePegWipe() {
+        closeRedrawModal();
+        
+        appState.forEach(e => {
+            e.anglers.forEach(a => {
+                a.z1 = undefined; 
+                a.p1 = undefined;
+                a.z2 = undefined; 
+                a.p2 = undefined;
+            });
+        });
+        
+        handleAmend(false);
+    }
+
+    function executeNuclearWipe() {
+        let title = document.getElementById('matchTitle').value || 'ZONEDRAW';
+        let txt = `REPORT: ${title}\nDATE: ${new Date().toLocaleString()}\n------------------------------\n\n`;
+        
+        appState.forEach(e => {
+            if (e.isTeam) {
+                txt += `TEAM: ${e.tName || "UNNAMED"}\n`;
+            } else {
+                txt += `SOLO: ${e.tName || "UNNAMED"}\n`;
+            }
+            
+            e.anglers.forEach(a => { 
+                if (a.name) {
+                    let capStr = a.captain ? ' [C]' : '';
+                    let accStr = (accEnabled && a.mobility) ? ' [A]' : '';
+                    let d1Str = `D1: ${a.z1} ${a.p1}`;
+                    let d2Str = `D2: ${a.z2 || '-'} ${a.p2 || '-'}`;
+                    txt += `  - ${a.name}${capStr}${accStr} | ${d1Str} | ${d2Str}\n`; 
+                }
+            });
+            txt += "\n";
+        });
+
+        const blob = new Blob([txt], {type: 'text/plain'});
+        const lnk = document.createElement('a'); 
+        lnk.href = URL.createObjectURL(blob); 
+        lnk.download = `${title.replace(/\s+/g, '_')}_FINAL_REPORT.txt`; 
+        lnk.click();
+        
+        isAppReady = false; 
+        localStorage.removeItem('zonedraw_current_state_v12');
+        closeWipeModal();
+        startNewDraw();
+        isAppReady = true; 
+    }
+
+    function setDays(d) {
+        matchDays = d;
+        
+        document.getElementById('dayOpt1').classList.toggle('active', d === 1);
+        document.getElementById('dayOpt2').classList.toggle('active', d === 2);
+        
+        if (d === 2) {
+            document.getElementById('day2PegsContainer').style.display = 'flex';
+            if (document.getElementById('day2AnchorContainer')) {
+                document.getElementById('day2AnchorContainer').style.display = 'flex';
+            }
+        } else {
+            document.getElementById('day2PegsContainer').style.display = 'none';
+            if (document.getElementById('day2AnchorContainer')) {
+                document.getElementById('day2AnchorContainer').style.display = 'none';
+            }
+        }
+    }
+
+    function startNewDraw() {
+        document.getElementById('matchTitle').value = '';
+        document.getElementById('initTeams').value = 0;
+        document.getElementById('initIndivs').value = 0;
+        document.getElementById('accPegs1_a').value = '';
+        document.getElementById('accPegs2_a').value = '';
+        
+        appState = []; 
+        currentZoneSize = 0;
+        setMobilityMode('A'); 
+        setDays(2);
+        accEnabled = false;
+        trashCan = null;
+        applyAccToggleUI();
+        
+        document.querySelectorAll('body > div[id$="Section"]').forEach(s => {
+            s.style.display = 'none';
+        });
+        
+        document.getElementById('entrySection').style.display = 'block';
+        document.getElementById('setupPanel').style.display = 'block';
+        document.getElementById('editDrawBanner').style.display = 'none';
+        document.getElementById('initMatchBtn').style.display = 'inline-block';
+        document.getElementById('commandBar').style.display = 'none';
+        document.getElementById('undoBtn').style.display = 'none';
+        
+        updateTicker();
+        renderStateToScreen(); 
+    }
+
+    function bulkInit() {
+        appState = [];
+        trashCan = null;
+        document.getElementById('undoBtn').style.display = 'none';
+        
+        let tVal = document.getElementById('initTeams').value;
+        let iVal = document.getElementById('initIndivs').value;
+        
+        const t = parseInt(tVal) || 0;
+        const i = parseInt(iVal) || 0;
+        
+        for(let x = 0; x < t; x++) {
+            appState.push({ 
+                id: genId(), 
+                isTeam: true, 
+                tName: '', 
+                anglers: [{},{},{},{}] 
+            });
+        }
+        
+        for(let y = 0; y < i; y++) {
+            appState.push({ 
+                id: genId(), 
+                isTeam: false, 
+                tName: '', 
+                anglers: [{}] 
+            });
+        }
+        
+        document.getElementById('initMatchBtn').style.display = 'none';
+        document.getElementById('commandBar').style.display = 'flex';
+        document.getElementById('amendTools').style.display = 'flex'; 
+        document.getElementById('actionBtnArea').style.display = 'flex';
+        
+        renderStateToScreen();
+
+        setTimeout(() => {
+            const firstInput = document.querySelector('#entryList input[type="text"]');
+            if (firstInput) { 
+                firstInput.focus(); 
+            }
+        }, 50);
+    }
+
+    function addNewStateItem(isTeam) {
+        if (isTeam) {
+            appState.push({ 
+                id: genId(), 
+                isTeam: true, 
+                tName: '', 
+                anglers: [{},{},{},{}] 
+            });
+        } else {
+            appState.push({ 
+                id: genId(), 
+                isTeam: false, 
+                tName: '', 
+                anglers: [{}] 
+            });
+        }
+        renderStateToScreen();
+    }
+
+    function toggleMobility(eId, aIdx) {
+        const entry = appState.find(e => e.id === eId);
+        if (entry) { 
+            if (entry.anglers[aIdx].mobility) {
+                entry.anglers[aIdx].mobility = 0;
+            } else {
+                entry.anglers[aIdx].mobility = 1;
+            }
+            renderStateToScreen(); 
+        }
+    }
+
+    function toggleCaptain(eId, aIdx) {
+        const entry = appState.find(e => e.id === eId);
+        if (entry) { 
+            let currentState = entry.anglers[aIdx].captain;
+            entry.anglers.forEach(a => a.captain = 0);
+            if (!currentState) {
+                entry.anglers[aIdx].captain = 1;
+            }
+            renderStateToScreen(); 
+        }
+    }
+
+    function updateTeamName(id, val) {
+        let entry = appState.find(e => e.id === id);
+        if (entry) { 
+            entry.tName = val.trim().toUpperCase(); 
+        }
+    }
+
+    function updateAnglerName(id, aIdx, val) {
+        let entry = appState.find(e => e.id === id);
+        if (entry && entry.anglers[aIdx]) {
+            entry.anglers[aIdx].name = val.trim().toUpperCase();
+            updateTicker();
+        }
+    }
+
+    function updateDrawButtons() {
+        const hasDraw = appState.some(e => {
+            return e.anglers.some(a => a.z1);
+        });
+        
+        const viewCont = document.getElementById('viewDrawContainer');
+        const processCont = document.getElementById('processDrawContainer');
+        
+        if (hasDraw) {
+            viewCont.style.display = 'flex';
+            processCont.style.display = 'none';
+        } else {
+            viewCont.style.display = 'none';
+            processCont.style.display = 'flex';
+        }
+    }
+
+    function renderStateToScreen() {
+        const tb = document.getElementById('entryTeamsBucket'); 
+        tb.innerHTML = '';
+        
+        const sb = document.getElementById('entrySolosBucket'); 
+        sb.innerHTML = '';
+        
+        appState.forEach(entry => {
+            const div = document.createElement('div');
+            
+            if (!entry.isTeam) {
+                div.className = 'zone-card solo-card';
+            } else {
+                div.className = 'zone-card';
+            }
+            
+            div.dataset.id = entry.id;
+            
+            let typeStr = entry.isTeam ? 'TEAM' : 'SOLO';
+            let h = `<div class="zone-header"><span>${typeStr}</span><div style="display:flex; align-items:center;">`;
+            
+            if (!entry.isTeam) { 
+                h += `<input type="checkbox" class="merge-cb" onchange="checkMerge()" tabindex="-1" style="width:20px; height:20px;">`; 
+            }
+            
+            if (entry.isTeam) { 
+                h += `<button class="btn-tool" onclick="breakStateTeam('${entry.id}')" tabindex="-1" style="margin-left:12px;">🔗 UNLINK</button>`; 
+            } else { 
+                h += `<button onclick="deleteStateEntry('${entry.id}')" tabindex="-1" style="background:none; border:none; color:#ef4444; font-weight:900; font-size:24px; cursor:pointer; margin-left:12px;">×</button>`; 
+            }
+            
+            h += `</div></div>`;
+            
+            if (entry.isTeam) {
+                h += `<label style="font-size:10px; opacity:0.6;">TEAM NAME</label>
+                      <input type="text" class="t-name" value="${entry.tName}" oninput="updateTeamName('${entry.id}', this.value)" style="margin-bottom:12px;">`;
+                      
+                for (let i = 0; i < 4; i++) {
+                    let mBg = entry.anglers[i].mobility ? 'var(--a-color)' : 'white';
+                    let mColor = entry.anglers[i].mobility ? 'white' : 'var(--text)';
+
+                    let cBg = entry.anglers[i].captain ? 'var(--c-color)' : 'white';
+                    let cColor = entry.anglers[i].captain ? 'white' : 'var(--text)';
+                    
+                    let aName = entry.anglers[i].name || '';
+                    
+                    h += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <input type="text" class="a-name-input" value="${aName}" placeholder="ANGLER ${i+1}" oninput="updateAnglerName('${entry.id}', ${i}, this.value)">
+                            <button class="btn-tool" onclick="toggleCaptain('${entry.id}', ${i})" tabindex="-1" style="padding:10px 14px; background:${cBg}; color:${cColor}; border-color:${cBg};">[C]</button>
+                            <button class="btn-tool" onclick="toggleMobility('${entry.id}', ${i})" tabindex="-1" style="padding:10px 14px; background:${mBg}; color:${mColor}; border-color:${mBg};">[A]</button>
+                          </div>`;
+                }
+            } else {
+                h += `<label style="font-size:10px; opacity:0.6;">SOLO NAME</label>`;
+                
+                let mBg = entry.anglers[0].mobility ? 'var(--a-color)' : 'white';
+                let mColor = entry.anglers[0].mobility ? 'white' : 'var(--text)';
+                
+                let aName = entry.anglers[0].name || '';
+                
+                h += `<div style="display:flex; align-items:center; gap:8px; margin-top:5px;">
+                        <input type="text" class="a-name-input" value="${aName}" oninput="updateAnglerName('${entry.id}', 0, this.value)">
+                        <button class="btn-tool" onclick="toggleMobility('${entry.id}', 0)" tabindex="-1" style="padding:10px 14px; background:${mBg}; color:${mColor}; border-color:${mBg};">[A]</button>
+                      </div>`;
+            }
+            
+            div.innerHTML = h; 
+            
+            if (entry.isTeam) {
+                tb.appendChild(div);
+            } else {
+                sb.appendChild(div);
+            }
+        });
+        
+        if (tb.innerHTML !== '') {
+            document.getElementById('entryTeamsContainer').style.display = 'block';
+        } else {
+            document.getElementById('entryTeamsContainer').style.display = 'none';
+        }
+        
+        if (sb.innerHTML !== '') {
+            document.getElementById('entrySolosContainer').style.display = 'block';
+        } else {
+            document.getElementById('entrySolosContainer').style.display = 'none';
+        }
+        
+        updateTicker(); 
+        checkMerge(); 
+        checkTeamClash(); 
+        updateDrawButtons();
+        persistState();
+    }
+
+    function deleteStateEntry(id) { 
+        const idx = appState.findIndex(e => e.id === id); 
+        if (idx > -1) { 
+            trashCan = { action: 'delete', data: appState[idx], index: idx };
+            document.getElementById('undoBtn').style.display = 'inline-block';
+            appState.splice(idx, 1); 
+            renderStateToScreen(); 
+        } 
+    }
+    
+    function breakStateTeam(id) { 
+        const idx = appState.findIndex(e => e.id === id); 
+        if (idx > -1) { 
+            const t = appState.splice(idx, 1)[0]; 
+            let nIds = [];
+            
+            t.anglers.forEach(a => { 
+                let nId = genId();
+                nIds.push(nId);
+                appState.push({ 
+                    id: nId, 
+                    isTeam: false, 
+                    tName: '', 
+                    anglers: [{...a}] 
+                }); 
+            }); 
+            
+            trashCan = { action: 'break', originalTeam: t, index: idx, newIds: nIds };
+            document.getElementById('undoBtn').style.display = 'inline-block';
+            renderStateToScreen(); 
+        } 
+    }
+
+    function undoLastAction() {
+        if (!trashCan) return;
+
+        if (trashCan.action === 'delete') {
+            appState.splice(trashCan.index, 0, trashCan.data);
+        } else if (trashCan.action === 'break') {
+            appState = appState.filter(e => !trashCan.newIds.includes(e.id));
+            appState.splice(trashCan.index, 0, trashCan.originalTeam);
+        }
+
+        trashCan = null;
+        document.getElementById('undoBtn').style.display = 'none';
+        renderStateToScreen();
+    }
+    
+    function mergeSelected() { 
+        const sel = document.querySelectorAll('.merge-cb:checked'); 
+        
+        if (sel.length !== 4) {
+            return; 
+        }
+        
+        const ids = Array.from(sel).map(cb => {
+            return cb.closest('.zone-card').dataset.id;
+        }); 
+        
+        const angs = []; 
+        
+        ids.forEach(id => { 
+            const idx = appState.findIndex(e => e.id === id); 
+            if (idx > -1) {
+                let removed = appState.splice(idx, 1)[0];
+                angs.push(removed.anglers[0]); 
+            }
+        }); 
+        
+        appState.push({ 
+            id: genId(), 
+            isTeam: true, 
+            tName: '', 
+            anglers: angs 
+        }); 
+        
+        renderStateToScreen(); 
+    }
+    
+    function checkMerge() { 
+        let checkedBoxes = document.querySelectorAll('.merge-cb:checked');
+        if (checkedBoxes.length === 4) {
+            document.getElementById('mergeBtn').style.display = 'inline-block';
+        } else {
+            document.getElementById('mergeBtn').style.display = 'none';
+        }
+    }
+    
+    function checkTeamClash() {
+        let clash = false; 
+        
+        if (mobilityMode === 'B') {
+            appState.forEach(e => { 
+                if (e.isTeam) {
+                    let mobCount = e.anglers.filter(a => a.mobility).length;
+                    if (mobCount > 1) {
+                        clash = true;
+                    }
+                } 
+            }); 
+        }
+        
+        if (clash) {
+            document.getElementById('teamClashWarning').style.display = 'block';
+            document.getElementById('mainActionBtn').disabled = true;
+        } else {
+            document.getElementById('teamClashWarning').style.display = 'none';
+            document.getElementById('mainActionBtn').disabled = false;
+        }
+    }
+    
+    function updateTicker() { 
+        let ent = 0; 
+        
+        appState.forEach(e => {
+            e.anglers.forEach(a => { 
+                if (a.name && a.name.trim() !== '') {
+                    ent++; 
+                }
+            });
+        });
+        
+        document.getElementById('tkAnglers').innerText = ent; 
+    }
+
+    function initiateShuffle() {
+        let filteredState = [];
+        
+        appState.forEach(e => {
+            if (e.isTeam) {
+                let hasNames = e.anglers.some(a => (a.name || '').trim() !== '');
+                let hasTeamName = (e.tName || '').trim() !== '';
+                if (hasNames || hasTeamName) {
+                    filteredState.push(e);
+                }
+            } else {
+                let hasName = (e.anglers[0].name || '').trim() !== '';
+                if (hasName) {
+                    filteredState.push(e);
+                }
+            }
+        });
+        
+        appState = filteredState;
+        
+        appState.forEach(e => {
+            e.anglers.forEach(a => { 
+                a.z1 = undefined; 
+                a.p1 = undefined; 
+                a.z2 = undefined; 
+                a.p2 = undefined; 
+            });
+        });
+        
+        renderStateToScreen();
+        
+        const over = document.getElementById('shuffleOverlay'); 
+        const pBar = document.getElementById('pBar');
+        
+        over.style.display = 'flex'; 
+        let p = 0;
+        
+        const inv = setInterval(() => { 
+            p += 5; 
+            pBar.style.width = p + '%'; 
+            
+            if (p >= 100) { 
+                clearInterval(inv); 
+                over.style.display = 'none'; 
+                runDraw(); 
+            } 
+        }, 30);
+    }
+
+    function runDraw() {
+        
+        // --- PRIORITY QUEUE SORTING ---
+        appState.sort((a, b) => {
+            let getPriority = (entry) => { 
+                let hasA = accEnabled && entry.anglers.some(ang => ang.mobility); 
+                if (entry.isTeam && hasA) {
+                    return 4; // Priority 1: Teams with [A]
+                }
+                if (!entry.isTeam && hasA) {
+                    return 3; // Priority 2: Solos with [A]
+                }
+                if (entry.isTeam) {
+                    return 2; // Priority 3: Standard Teams
+                }
+                return 1; // Priority 4: Standard Solos
+            };
+            return getPriority(b) - getPriority(a);
+        });
+
+        let s1A_str = document.getElementById('accPegs1_a').value || '';
+        let s2A_str = document.getElementById('accPegs2_a').value || '';
+        
+        let s1A = s1A_str.match(/\d+/g) ? s1A_str.match(/\d+/g).map(Number) : [];
+        let s2A = s2A_str.match(/\d+/g) ? s2A_str.match(/\d+/g).map(Number) : [];
+        
+        const ancZ1 = document.getElementById('anchorZoneSelect').value;
+        const ancZ2 = document.getElementById('anchorZoneSelect2').value;
+        
+        let tot = 0; 
+        appState.forEach(e => {
+            if (e.isTeam) {
+                tot += 4;
+            } else {
+                tot += 1;
+            }
+        });
+        
+        let zSize = Math.max(Math.ceil(tot / 4), 1); 
+        currentZoneSize = zSize;
+        
+        let p1 = zones.map((z, idx) => { 
+            let p = []; 
+            for (let i = 1; i <= zSize; i++) {
+                p.push((idx * zSize) + i);
+            }
+            p.sort(() => Math.random() - 0.5); 
+            return {z, p}; 
+        });
+        
+        let p2 = zones.map((z, idx) => { 
+            let p = []; 
+            for (let i = 1; i <= zSize; i++) {
+                p.push((idx * zSize) + i);
+            }
+            p.sort(() => Math.random() - 0.5); 
+            return {z, p}; 
+        });
+
+        // --- LOOK-AHEAD SAFE PEG ALLOCATION (THE CLASH MINIMIZER - MODE A ONLY) ---
+        let aEntries = [];
+        if (accEnabled) {
+            appState.forEach(e => {
+                if (e.anglers.some(a => a.mobility)) {
+                    aEntries.push(e);
+                }
+            });
+        }
+
+        if (accEnabled && mobilityMode === 'A' && aEntries.length > 0) {
+            let availableD1Safe = [];
+            let availableD2Safe = [];
+            
+            zones.forEach(z => {
+                let zI = zones.indexOf(z);
+                let safeCount = 0;
+                p1[zI].p.forEach(pegNum => {
+                    if (s1A.includes(pegNum)) {
+                        safeCount++;
+                    }
+                });
+                for (let i = 0; i < safeCount; i++) {
+                    availableD1Safe.push(z);
+                }
+            });
+            
+            zones.forEach(z => {
+                let zI = zones.indexOf(z);
+                let safeCount = 0;
+                p2[zI].p.forEach(pegNum => {
+                    if (s2A.includes(pegNum)) {
+                        safeCount++;
+                    }
+                });
+                for (let i = 0; i < safeCount; i++) {
+                    availableD2Safe.push(z);
+                }
+            });
+
+            let bestPairing = [];
+            let leastClashes = 999;
+            
+            for (let attempt = 0; attempt < 100; attempt++) {
+                let tempD1 = [...availableD1Safe].sort(() => Math.random() - 0.5);
+                let tempD2 = [...availableD2Safe].sort(() => Math.random() - 0.5);
+                
+                let clashes = 0;
+                let currentPairs = [];
+                
+                for (let i = 0; i < aEntries.length; i++) {
+                    let z1 = null;
+                    let z2 = null;
+                    
+                    if (i < tempD1.length) z1 = tempD1[i];
+                    if (i < tempD2.length) z2 = tempD2[i];
+                    
+                    if (z1 !== null && z2 !== null && z1 === z2) {
+                        clashes++;
+                    }
+                    
+                    currentPairs.push({z1: z1, z2: z2});
+                }
+                
+                if (clashes < leastClashes) {
+                    leastClashes = clashes;
+                    bestPairing = currentPairs;
+                    if (leastClashes === 0) {
+                        break; 
+                    }
+                }
+            }
+
+            aEntries.forEach((e, idx) => {
+                let a = e.anglers.find(ang => ang.mobility);
+                a.preZ1 = bestPairing[idx].z1;
+                a.preZ2 = bestPairing[idx].z2;
+            });
+        }
+        
+        const pull = (z, d2, mob) => {
+            const pools = d2 ? p2 : p1; 
+            const zI = zones.indexOf(z);
+            
+            if (accEnabled && mobilityMode === 'A') {
+                const sL = d2 ? s2A : s1A;
+                if (mob) { 
+                    let sI = pools[zI].p.findIndex(p => sL.includes(p)); 
+                    if (sI > -1) {
+                        return pools[zI].p.splice(sI, 1)[0]; 
+                    }
+                } else if (sL.length > 0) { 
+                    let nI = pools[zI].p.findIndex(p => !sL.includes(p)); 
+                    if (nI > -1) {
+                        return pools[zI].p.splice(nI, 1)[0]; 
+                    }
+                }
+            }
+            
+            let popVal = pools[zI].p.pop();
+            if (popVal !== undefined) {
+                return popVal;
+            } else {
+                return 9999;
+            }
+        };
+        
+        const canS = (z, d, mob) => { 
+            if (!accEnabled || !mob) return true; 
+            let sL = d === 1 ? s1A : s2A; 
+            return (d === 1 ? p1 : p2)[zones.indexOf(z)].p.some(p => sL.includes(p)); 
+        };
+        
+        appState.forEach(e => {
+            if (e.isTeam) {
+                let hasA = false;
+                if (accEnabled) {
+                    e.anglers.forEach(a => {
+                        if (a.mobility) hasA = true;
+                    });
+                }
+                
+                if (accEnabled && mobilityMode === 'B' && hasA) {
+                    let d1Z = [null, null, null, null];
+                    let d2Z = [null, null, null, null]; 
+                    
+                    e.anglers.forEach((a, i) => { 
+                        if (a.mobility) { 
+                            d1Z[i] = ancZ1; 
+                            d2Z[i] = ancZ2; 
+                        } 
+                    });
+                    
+                    let av1 = [];
+                    zones.forEach(z => {
+                        if (z !== ancZ1) {
+                            av1.push(z);
+                        }
+                    });
+                    av1.sort(() => Math.random() - 0.5);
+                    
+                    let sI = [];
+                    e.anglers.forEach((a, i) => {
+                        if (!a.mobility) {
+                            sI.push(i);
+                        }
+                    });
+                    
+                    d1Z[sI[0]] = av1[0];
+                    d1Z[sI[1]] = av1[1];
+                    d1Z[sI[2]] = av1[2];
+                    
+                    let av2 = [];
+                    zones.forEach(z => {
+                        if (z !== ancZ2) {
+                            av2.push(z);
+                        }
+                    });
+                    
+                    let bestD2Perm = [...av2];
+                    
+                    for (let attempt = 0; attempt < 20; attempt++) {
+                        av2.sort(() => Math.random() - 0.5);
+                        let isValid = true;
+                        
+                        for (let k = 0; k < 3; k++) {
+                            if (d1Z[sI[k]] === av2[k]) {
+                                isValid = false;
+                            }
+                        }
+                        
+                        if (isValid) {
+                            bestD2Perm = [...av2];
+                            break;
+                        }
+                    }
+                    
+                    d2Z[sI[0]] = bestD2Perm[0];
+                    d2Z[sI[1]] = bestD2Perm[1];
+                    d2Z[sI[2]] = bestD2Perm[2];
+                    
+                    e.anglers.forEach((a, i) => { 
+                        a.z1 = d1Z[i]; 
+                        a.p1 = pull(a.z1, 0, a.mobility); 
+                        a.z2 = d2Z[i]; 
+                        a.p2 = pull(a.z2, 1, a.mobility); 
+                    });
+                    
+                } else if (accEnabled && mobilityMode === 'A' && hasA) {
+                    
+                    let mI = e.anglers.findIndex(a => a.mobility); 
+                    let a = e.anglers[mI];
+                    
+                    let targetZ1 = a.preZ1;
+                    let targetZ2 = a.preZ2;
+                    
+                    if (!targetZ1) {
+                        let randZones = [...zones].sort(() => Math.random() - 0.5);
+                        targetZ1 = randZones[0];
+                    }
+                    if (!targetZ2) {
+                        let randZones = [];
+                        zones.forEach(z => {
+                            if (z !== targetZ1) randZones.push(z);
+                        });
+                        randZones.sort(() => Math.random() - 0.5);
+                        
+                        if (randZones.length > 0) {
+                            targetZ2 = randZones[0];
+                        } else {
+                            targetZ2 = targetZ1;
+                        }
+                    }
+
+                    let d1Z = [null, null, null, null];
+                    let d2Z = [null, null, null, null];
+                    
+                    d1Z[mI] = targetZ1;
+                    d2Z[mI] = targetZ2;
+                    
+                    let remainingD1 = [];
+                    zones.forEach(z => {
+                        if (z !== targetZ1) remainingD1.push(z);
+                    });
+                    
+                    let remainingD2 = [];
+                    zones.forEach(z => {
+                        if (z !== targetZ2) remainingD2.push(z);
+                    });
+                    
+                    remainingD1.sort(() => Math.random() - 0.5);
+                    
+                    let bestD2Perm = [...remainingD2];
+                    
+                    for (let attempt = 0; attempt < 20; attempt++) {
+                        remainingD2.sort(() => Math.random() - 0.5);
+                        let isValid = true;
+                        
+                        for (let i = 0; i < 3; i++) {
+                            if (remainingD1[i] === remainingD2[i]) {
+                                isValid = false;
+                            }
+                        }
+                        
+                        if (isValid) {
+                            bestD2Perm = [...remainingD2];
+                            break;
+                        }
+                    }
+                    
+                    remainingD2 = bestD2Perm;
+                    
+                    let rIdx = 0;
+                    for (let i = 0; i < 4; i++) {
+                        if (i !== mI) {
+                            d1Z[i] = remainingD1[rIdx];
+                            d2Z[i] = remainingD2[rIdx];
+                            rIdx++;
+                        }
+                    }
+                    
+                    e.anglers.forEach((ang, i) => { 
+                        ang.z1 = d1Z[i]; 
+                        ang.p1 = pull(ang.z1, 0, ang.mobility); 
+                        ang.z2 = d2Z[i]; 
+                        ang.p2 = pull(ang.z2, 1, ang.mobility); 
+                    });
+                    
+                } else {
+                    let d1Z = [...zones].sort(() => Math.random() - 0.5); 
+                    let d2Z = [d1Z[1], d1Z[2], d1Z[3], d1Z[0]];
+                    
+                    e.anglers.forEach((a, i) => { 
+                        a.z1 = d1Z[i]; 
+                        a.p1 = pull(a.z1, 0, 0); 
+                        a.z2 = d2Z[i]; 
+                        a.p2 = pull(a.z2, 1, 0); 
+                    });
+                }
+            } else {
+                let a = e.anglers[0]; 
+                let hasMobility = accEnabled && a.mobility;
+                
+                if (accEnabled && mobilityMode === 'B' && hasMobility) { 
+                    a.z1 = ancZ1;
+                    a.z2 = ancZ2; 
+                } else if (accEnabled && mobilityMode === 'A' && hasMobility) {
+                    if (a.preZ1) {
+                        a.z1 = a.preZ1;
+                    } else {
+                        a.z1 = zones[Math.floor(Math.random() * zones.length)];
+                    }
+                    
+                    if (a.preZ2) {
+                        a.z2 = a.preZ2;
+                    } else {
+                        let av2 = [];
+                        zones.forEach(z => {
+                            if (z !== a.z1) av2.push(z);
+                        });
+                        
+                        if (av2.length > 0) {
+                            a.z2 = av2[0];
+                        } else {
+                            a.z2 = a.z1;
+                        }
+                    }
+                } else { 
+                    let av = [];
+                    zones.forEach(z => {
+                        let zI = zones.indexOf(z);
+                        if (p1[zI].p.length > 0) {
+                            av.push(z);
+                        }
+                    });
+                    
+                    if (av.length > 0) {
+                        a.z1 = av[Math.floor(Math.random() * av.length)]; 
+                    }
+                    
+                    let av2 = [];
+                    zones.forEach(z => {
+                        let zI = zones.indexOf(z);
+                        if (z !== a.z1 && p2[zI].p.length > 0) {
+                            av2.push(z);
+                        }
+                    });
+                    
+                    if (av2.length === 0) {
+                        zones.forEach(z => {
+                            let zI = zones.indexOf(z);
+                            if (p2[zI].p.length > 0) {
+                                av2.push(z);
+                            }
+                        });
+                    }
+                    
+                    if (av2.length > 0) {
+                        a.z2 = av2[Math.floor(Math.random() * av2.length)]; 
+                    }
+                }
+                
+                a.p1 = pull(a.z1, 0, hasMobility); 
+                a.p2 = pull(a.z2, 1, hasMobility);
+            }
+        });
+        displayDraw();
+    }
+
+    function toggleSwapMode() { 
+        if (isSwapMode) {
+            isSwapMode = false;
+        } else {
+            isSwapMode = true;
+        }
+        
+        swapObj1 = null; 
+        
+        if (isSwapMode) {
+            document.getElementById('swapPrompt').style.display = 'block';
+        } else {
+            document.getElementById('swapPrompt').style.display = 'none';
+        }
+        
+        displayDraw(); 
+    }
+
+    function handleSwapClick(eId, aI, day) { 
+        if (!isSwapMode) {
+            return; 
+        }
+        
+        if (!swapObj1) { 
+            swapObj1 = {
+                eId: eId, 
+                aI: aI, 
+                day: day
+            }; 
+            displayDraw(); 
+        } else { 
+            if (swapObj1.day !== day) { 
+                alert("Please select another Day " + swapObj1.day + " peg to complete the swap."); 
+                return; 
+            }
+            
+            let e1 = null;
+            let e2 = null;
+            
+            appState.forEach(e => {
+                if (e.id === swapObj1.eId) e1 = e;
+                if (e.id === eId) e2 = e;
+            });
+            
+            const a1 = e1.anglers[swapObj1.aI]; 
+            const a2 = e2.anglers[aI]; 
+            
+            if (day === 1) { 
+                let tempZ = a1.z1;
+                a1.z1 = a2.z1;
+                a2.z1 = tempZ;
+                
+                let tempP = a1.p1;
+                a1.p1 = a2.p1;
+                a2.p1 = tempP;
+            } else { 
+                let tempZ = a1.z2;
+                a1.z2 = a2.z2;
+                a2.z2 = tempZ;
+                
+                let tempP = a1.p2;
+                a1.p2 = a2.p2;
+                a2.p2 = tempP;
+            }
+            
+            toggleSwapMode(); 
+        } 
+    }
+
+    function runValidator() {
+        let errors = [];
+        let clashMap = [];
+        let pM1 = { RED:[], YELLOW:[], GREEN:[], BLUE:[] };
+        let pM2 = { RED:[], YELLOW:[], GREEN:[], BLUE:[] };
+
+        appState.forEach(team => {
+            let tN = team.tName || 'SOLO';
+            
+            if (team.isTeam) {
+                let d1Z = {};
+                let d2Z = {};
+                
+                team.anglers.forEach((a, aI) => {
+                    if (a.z1) {
+                        if (!d1Z[a.z1]) d1Z[a.z1] = [];
+                        d1Z[a.z1].push(aI);
+                    }
+                    if (matchDays === 2 && a.z2) {
+                        if (!d2Z[a.z2]) d2Z[a.z2] = [];
+                        d2Z[a.z2].push(aI);
+                    }
+                });
+                
+                Object.keys(d1Z).forEach(z => {
+                    if (d1Z[z].length > 1) {
+                        errors.push(`TEAM CLASH: '${tN}' has multiple anglers in ${z} on DAY 1.`);
+                        d1Z[z].forEach(idx => clashMap.push({eId: team.id, aI: idx, day: 1}));
+                    }
+                });
+                
+                Object.keys(d2Z).forEach(z => {
+                    if (d2Z[z].length > 1) {
+                        errors.push(`TEAM CLASH: '${tN}' has multiple anglers in ${z} on DAY 2.`);
+                        d2Z[z].forEach(idx => clashMap.push({eId: team.id, aI: idx, day: 2}));
+                    }
+                });
+            }
+            
+            team.anglers.forEach((a, aI) => {
+                let aN = a.name || 'UNNAMED';
+                
+               if (!a.z1 || a.p1 === 9999 || a.p1 === undefined) {
+                    errors.push(`GHOST PEG: '${aN}' has an invalid peg on DAY 1.`);
+                    clashMap.push({eId: team.id, aI: aI, day: 1});
+                }
+                
+                if (matchDays === 2 && (!a.z2 || a.p2 === 9999 || a.p2 === undefined)) {
+                    errors.push(`GHOST PEG: '${aN}' has an invalid peg on DAY 2.`);
+                    clashMap.push({eId: team.id, aI: aI, day: 2});
+                }
+                
+                let allowedDouble = false;
+                if (accEnabled && a.mobility) {
+                    allowedDouble = true;
+                }
+                
+                if (matchDays === 2 && a.z1 && a.z2 && a.z1 === a.z2 && !allowedDouble) {
+                    errors.push(`DOUBLE ZONE: '${aN}' fishes ${a.z1} both days.`);
+                    clashMap.push({eId: team.id, aI: aI, day: 1});
+                    clashMap.push({eId: team.id, aI: aI, day: 2});
+                }
+                
+                if (a.z1 && a.p1 && a.p1 !== 9999) {
+                    let dup = pM1[a.z1].find(p => p.val === a.p1);
+                    if (dup) {
+                        errors.push(`PEG CLASH: '${a.z1} ${a.p1}' duplicated on DAY 1.`);
+                        clashMap.push({eId: team.id, aI: aI, day: 1});
+                        clashMap.push({eId: dup.eId, aI: dup.aI, day: 1});
+                    } else {
+                        pM1[a.z1].push({val: a.p1, eId: team.id, aI: aI});
+                    }
+                }
+                
+                if (matchDays === 2 && a.z2 && a.p2 && a.p2 !== 9999) {
+                    let dup = pM2[a.z2].find(p => p.val === a.p2);
+                    if (dup) {
+                        errors.push(`PEG CLASH: '${a.z2} ${a.p2}' duplicated on DAY 2.`);
+                        clashMap.push({eId: team.id, aI: aI, day: 2});
+                        clashMap.push({eId: dup.eId, aI: dup.aI, day: 2});
+                    } else {
+                        pM2[a.z2].push({val: a.p2, eId: team.id, aI: aI});
+                    }
+                }
+            });
+        });
+        
+        let uniqueErrors = [];
+        errors.forEach(e => {
+            if (!uniqueErrors.includes(e)) {
+                uniqueErrors.push(e);
+            }
+        });
+        
+        return { list: uniqueErrors, markers: clashMap };
+    }
+
+    function injectLatecomer(isTeam) {
+        let used1 = { 'RED':[], 'YELLOW':[], 'GREEN':[], 'BLUE':[] };
+        let used2 = { 'RED':[], 'YELLOW':[], 'GREEN':[], 'BLUE':[] };
+        
+        appState.forEach(e => {
+            e.anglers.forEach(a => {
+                if(a.z1 && a.p1 && a.p1 !== 9999) used1[a.z1].push(a.p1);
+                if(matchDays === 2 && a.z2 && a.p2 && a.p2 !== 9999) used2[a.z2].push(a.p2);
+            });
+        });
+
+        let avail1 = { 'RED':[], 'YELLOW':[], 'GREEN':[], 'BLUE':[] };
+        let avail2 = { 'RED':[], 'YELLOW':[], 'GREEN':[], 'BLUE':[] };
+        
+        let hasEnough = true;
+        zones.forEach((z, idx) => {
+            for(let i=1; i<=currentZoneSize; i++) {
+                let pN = (idx * currentZoneSize) + i;
+                if(!used1[z].includes(pN)) avail1[z].push(pN);
+                if(matchDays === 2 && !used2[z].includes(pN)) avail2[z].push(pN);
+            }
+            if(isTeam && (avail1[z].length === 0 || (matchDays === 2 && avail2[z].length === 0))) {
+                hasEnough = false;
+            }
+        });
+
+        let totalAvail1 = Object.values(avail1).flat().length;
+        if(!hasEnough || (!isTeam && totalAvail1 === 0)) {
+            alert("Not enough empty pegs in the bucket! You must hit '⚠️ RE-DRAW MATCH' to mathematically expand the zones.");
+            return;
+        }
+
+        let newEntry = {
+            id: genId(),
+            isTeam: isTeam,
+            tName: '',
+            anglers: []
+        };
+
+        if(isTeam) {
+            let d1Z = [...zones].sort(() => Math.random() - 0.5); 
+            let d2Z = [d1Z[1], d1Z[2], d1Z[3], d1Z[0]];
+            
+            for(let i=0; i<4; i++) {
+                let p1_arr = avail1[d1Z[i]];
+                let p1_val = p1_arr.splice(Math.floor(Math.random() * p1_arr.length), 1)[0];
+                
+                let p2_val = undefined;
+                if(matchDays === 2) {
+                    let p2_arr = avail2[d2Z[i]];
+                    p2_val = p2_arr.splice(Math.floor(Math.random() * p2_arr.length), 1)[0];
+                }
+                
+                newEntry.anglers.push({
+                    name: '',
+                    z1: d1Z[i], p1: p1_val,
+                    z2: matchDays === 2 ? d2Z[i] : undefined, p2: p2_val
+                });
+            }
+        } else {
+            let flat1 = [];
+            zones.forEach(z => avail1[z].forEach(p => flat1.push({z, p})));
+            let picked1 = flat1[Math.floor(Math.random() * flat1.length)];
+            avail1[picked1.z] = avail1[picked1.z].filter(p => p !== picked1.p);
+            
+            let picked2 = { z: undefined, p: undefined };
+            if(matchDays === 2) {
+                let flat2 = [];
+                zones.forEach(z => {
+                    if(z !== picked1.z) avail2[z].forEach(p => flat2.push({z, p}));
+                });
+                if(flat2.length === 0) {
+                    zones.forEach(z => avail2[z].forEach(p => flat2.push({z, p})));
+                }
+                picked2 = flat2[Math.floor(Math.random() * flat2.length)];
+            }
+            
+            newEntry.anglers.push({
+                name: '',
+                z1: picked1.z, p1: picked1.p,
+                z2: matchDays === 2 ? picked2.z : undefined, p2: matchDays === 2 ? picked2.p : undefined
+            });
+        }
+        
+        appState.push(newEntry);
+        displayDraw();
+        
+        setTimeout(() => {
+            handleSafeEdit();
+            alert("Latecomer module successfully injected and assigned leftover pegs. Please fill in their names.");
+        }, 50); 
+    }
+
+    function isPegSafe(p, d) { 
+        if (!accEnabled) return false;
+        if (mobilityMode === 'A') {
+            let safeStr = '';
+            if (d === 1) {
+                safeStr = document.getElementById('accPegs1_a').value;
+            } else {
+                safeStr = document.getElementById('accPegs2_a').value;
+            }
+            let safeArr = safeStr.match(/\d+/g) || [];
+            return safeArr.includes(String(p));
+        }
+        return false;
+    }
+
+    function toggleExportMenu() { 
+        const m = document.getElementById('exportMenu'); 
+        if (m.style.display === 'none') {
+            m.style.display = 'flex';
+        } else {
+            m.style.display = 'none';
+        }
+    }
+
+    function displayDraw() {
+        document.querySelectorAll('body > div[id$="Section"]').forEach(s => {
+            s.style.display = 'none';
+        });
+        
+        document.getElementById('resultsSection').style.display = 'block';
+        
+        let titleVal = document.getElementById('matchTitle').value;
+        if (titleVal) {
+            document.getElementById('resTitle').innerText = titleVal;
+        } else {
+            document.getElementById('resTitle').innerText = "DRAW";
+        }
+        
+        document.getElementById('commandBar').style.display = 'none';
+
+        let totAnglers = 0;
+        appState.forEach(e => {
+            if (e.isTeam) totAnglers += 4;
+            else totAnglers += 1;
+        });
+        currentZoneSize = Math.max(Math.ceil(totAnglers / 4), 1);
+        const s = currentZoneSize;
+
+        document.getElementById('keyRed').innerText = `RED (1-${s})`;
+        document.getElementById('keyYellow').innerText = `YELLOW (${s+1}-${s*2})`;
+        document.getElementById('keyGreen').innerText = `GREEN (${(s*2)+1}-${s*3})`;
+        document.getElementById('keyBlue').innerText = `BLUE (${(s*3)+1}-${s*4})`;
+
+        const validation = runValidator(); 
+        const anom = validation.list;
+        const markers = validation.markers;
+        const banner = document.getElementById('anomalyBanner'); 
+        const list = document.getElementById('anomalyList');
+        
+        if (anom.length > 0) { 
+            banner.style.display = 'block'; 
+            
+            let listHTML = '';
+            anom.forEach(err => {
+                listHTML += `<li>${err}</li>`;
+            });
+            list.innerHTML = listHTML;
+            
+        } else { 
+            banner.style.display = 'none'; 
+        }
+
+        const tb = document.getElementById('teamsBucket'); 
+        tb.innerHTML = ''; 
+        
+        const sb = document.getElementById('solosBucket'); 
+        sb.innerHTML = '';
+        
+        appState.forEach(g => {
+            const div = document.createElement('div'); 
+            div.className = 'zone-card';
+            
+            let fZ = null;
+            if (g.anglers[0] && g.anglers[0].z1) {
+                fZ = g.anglers[0].z1;
+            }
+            
+            if (fZ && zColors[fZ]) {
+                div.style.borderTopColor = zColors[fZ];
+            } else {
+                div.style.borderTopColor = 'black';
+            }
+            
+            let bgSoft = '#f1f5f9';
+            if (fZ && zSofts[fZ]) {
+                bgSoft = zSofts[fZ];
+            }
+            
+            let nameStr = g.tName ? g.tName : 'SOLO';
+            
+            let h = `<div class="zone-header" style="background:${bgSoft};"><span>${nameStr}</span></div>`;
+            h += `<div class="res-row" style="border:none; font-size:10px; color:#64748b;"><span></span><span style="text-align:center;">DAY 1</span><span style="text-align:center;">DAY 2</span></div>`;
+            
+            g.anglers.forEach((a, aI) => {
+                let p1C = '';
+                if (isSwapMode) {
+                    p1C += ' swap-active';
+                }
+                if (swapObj1 && swapObj1.eId === g.id && swapObj1.aI === aI && swapObj1.day === 1) {
+                    p1C += ' swap-selected';
+                }
+                if (markers.find(m => m.eId === g.id && m.aI === aI && m.day === 1)) {
+                    p1C += ' clash-glow';
+                }
+                
+                let p2C = '';
+                if (isSwapMode) {
+                    p2C += ' swap-active';
+                }
+                if (swapObj1 && swapObj1.eId === g.id && swapObj1.aI === aI && swapObj1.day === 2) {
+                    p2C += ' swap-selected';
+                }
+                if (markers.find(m => m.eId === g.id && m.aI === aI && m.day === 2)) {
+                    p2C += ' clash-glow';
+                }
+                
+                let aName = a.name || '';
+                let aTag = (accEnabled && a.mobility) ? ' <span class="a-tag">[A]</span>' : '';
+                let cTag = a.captain ? ' <span class="c-tag">[C]</span>' : '';
+                
+                let d1Bg = zColors[a.z1] || 'gray';
+                let d2Bg = zColors[a.z2] || 'gray';
+                
+                let d1SafeTag = isPegSafe(a.p1, 1) ? '<br><small>[A]</small>' : '';
+                let d2SafeTag = isPegSafe(a.p2, 2) ? '<br><small>[A]</small>' : '';
+                
+                h += `<div class="res-row">
+                        <span class="angler-name">${aName}${cTag}${aTag}</span>
+                        <div class="draw-pill${p1C}" style="background:${d1Bg}" onclick="handleSwapClick('${g.id}',${aI},1)">
+                            <span>${a.z1}</span> <span class="peg-num">${a.p1}</span>${d1SafeTag}
+                        </div>
+                        <div class="draw-pill${p2C}" style="background:${d2Bg}" onclick="handleSwapClick('${g.id}',${aI},2)">
+                            <span>${a.z2 || '-'}</span> <span class="peg-num">${a.p2 || '-'}</span>${d2SafeTag}
+                        </div>
+                      </div>`;
+            });
+            
+            div.innerHTML = h; 
+            
+            if (g.isTeam) {
+                tb.appendChild(div);
+            } else {
+                sb.appendChild(div);
+            }
+        });
+        
+        if (tb.innerHTML !== '') {
+            document.getElementById('teamsBucketContainer').style.display = 'block';
+        } else {
+            document.getElementById('teamsBucketContainer').style.display = 'none';
+        }
+        
+        if (sb.innerHTML !== '') {
+            document.getElementById('solosBucketContainer').style.display = 'block';
+        } else {
+            document.getElementById('solosBucketContainer').style.display = 'none';
+        }
+        
+        window.scrollTo(0,0);
+        persistState();
+    }
+
+    function handleAmend(isSafe) { 
+        document.querySelectorAll('body > div[id$="Section"]').forEach(s => {
+            s.style.display = 'none';
+        });
+        
+        document.getElementById('entrySection').style.display = 'block'; 
+        document.getElementById('commandBar').style.display = 'flex'; 
+        
+        if (appState.length > 0) { 
+            document.getElementById('initMatchBtn').style.display = 'none'; 
+            document.getElementById('commandBar').style.display = 'flex'; 
+            document.getElementById('amendTools').style.display = 'flex'; 
+            document.getElementById('actionBtnArea').style.display = 'flex'; 
+        }
+        
+        if (isSafe) {
+            document.getElementById('setupPanel').style.display = 'none';
+            document.getElementById('editDrawBanner').style.display = 'block';
+            document.getElementById('accToggleBtn').style.display = 'none';
+            document.getElementById('accPanelWrapper').style.display = 'none';
+        } else {
+            document.getElementById('setupPanel').style.display = 'block';
+            document.getElementById('editDrawBanner').style.display = 'none';
+            document.getElementById('accToggleBtn').style.display = 'block';
+            
+            if (accEnabled) {
+                document.getElementById('accPanelWrapper').style.display = 'flex';
+            } else {
+                document.getElementById('accPanelWrapper').style.display = 'none';
+            }
+        }
+        
+        renderStateToScreen(); 
+    }
+
+    function generateRegistrationSheet() {
+        const c = document.getElementById('registrationPrintSection'); 
+        c.innerHTML = '';
+        
+        let matchName = document.getElementById('matchTitle').value;
+        
+        let h = `<div class="roster-header">
+                    <h1>${matchName}</h1>
+                    <h2>REGISTRATION</h2>
+                 </div>
+                 <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th>NAME</th>
+                            <th>TEAM</th>
+                            <th>PRESENT</th>
+                            <th>PRIZE POOL</th>
+                            <th>POOLS</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+                    
+        let sortedState = [...appState].sort((a,b) => {
+            let nameA = a.tName || "SOLO";
+            let nameB = b.tName || "SOLO";
+            return nameA.localeCompare(nameB);
+        });
+        
+        sortedState.forEach(e => { 
+            e.anglers.forEach(a => { 
+                let aName = a.name || '';
+                let mobStr = (accEnabled && a.mobility) ? ' [A]' : '';
+                let capStr = a.captain ? ' [C]' : '';
+                let tName = e.tName || 'SOLO';
+                
+                h += `<tr>
+                        <td>${aName}${capStr}${mobStr}</td>
+                        <td>${tName}</td>
+                        <td><div class="print-checkbox"></div></td>
+                        <td><div class="print-checkbox"></div></td>
+                        <td><div class="print-checkbox"></div></td>
+                      </tr>`; 
+            }); 
+        });
+        
+        h += `</tbody></table>`;
+        c.innerHTML = h;
+        
+        document.body.classList.add('printing-registration'); 
+        window.print(); 
+        document.body.classList.remove('printing-registration');
+    }
+
+    function printZoneRosters() {
+        const c = document.getElementById('rosterSection'); 
+        c.innerHTML = '';
+        
+        let days = matchDays === 2 ? [1, 2] : [1];
+        
+        days.forEach(d => { 
+            zones.forEach(z => {
+                let list = []; 
+                
+                appState.forEach(e => { 
+                    e.anglers.forEach(a => { 
+                        let targetZ = null;
+                        if (d === 1) {
+                            targetZ = a.z1;
+                        } else {
+                            targetZ = a.z2;
+                        }
+                        
+                        if (targetZ === z) {
+                            let targetP = null;
+                            if (d === 1) {
+                                targetP = a.p1;
+                            } else {
+                                targetP = a.p2;
+                            }
+                            
+                            let capStr = a.captain ? ' [C]' : '';
+                            
+                            list.push({ 
+                                n: (a.name || '') + capStr, 
+                                t: e.tName, 
+                                p: targetP 
+                            }); 
+                        }
+                    }); 
+                });
+                
+                if (list.length === 0) {
+                    return; 
+                }
+                
+                list.sort((a, b) => a.p - b.p);
+                
+                let h = `<div class="roster-page">
+                            <div class="roster-header">
+                                <h1>DAY ${d} - ${z}</h1>
+                            </div>
+                            <table class="print-table">
+                                <thead>
+                                    <tr>
+                                        <th>PEG</th>
+                                        <th>NAME</th>
+                                        <th>TEAM</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+                                
+                list.forEach(i => { 
+                    let tName = i.t || 'SOLO';
+                    h += `<tr>
+                            <td>${i.p}</td>
+                            <td>${i.n}</td>
+                            <td>${tName}</td>
+                          </tr>`; 
+                });
+                
+                h += `</tbody></table></div>`;
+                c.innerHTML += h;
+            }); 
+        });
+        
+        document.body.classList.add('printing-rosters'); 
+        window.print(); 
+        document.body.classList.remove('printing-rosters');
+    }
+
+    function generateDispatchSlips() {
+        const c = document.getElementById('dispatchSection'); 
+        c.innerHTML = '';
+        
+        let teamsOnly = [];
+        appState.forEach(e => {
+            if (e.isTeam) {
+                teamsOnly.push(e);
+            }
+        });
+        
+        teamsOnly.forEach(e => {
+            let tName = e.tName || 'UNNAMED TEAM';
+            
+            let h = `<div class="dispatch-slip" style="page-break-after: always;">
+                        <div class="dispatch-header">
+                            <h1>TEAM: ${tName}</h1>
+                        </div>
+                        <table class="print-table">
+                            <thead>
+                                <tr>
+                                    <th>NAME</th>
+                                    <th>DAY 1</th>
+                                    ${matchDays === 2 ? '<th>DAY 2</th>' : ''}
+                                    <th style="width:100px;">PRIZE POT (£)</th>
+                                    <th style="width:120px;">SECRET PAIRS (£)</th>
+                                    <th style="width:120px;">ANGLER TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                            
+            e.anglers.forEach(a => { 
+                let aName = a.name || '';
+                let mobStr = (accEnabled && a.mobility) ? ' [A]' : '';
+                let capStr = a.captain ? ' [C]' : '';
+                
+                h += `<tr>
+                        <td>${aName} ${capStr}${mobStr}</td>
+                        <td>${a.z1} ${a.p1}</td>
+                        ${matchDays === 2 ? `<td>${a.z2} ${a.p2}</td>` : ''}
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                      </tr>`; 
+            });
+            
+            let colSpan = matchDays === 2 ? 5 : 4;
+            h += `          <tr>
+                                <td colspan="${colSpan}" style="text-align: right; font-weight: 900; font-size: 16px; padding: 15px;">TOTAL TEAM CASH HANDOVER:</td>
+                                <td style="font-weight: 900; font-size: 16px; background: #f8fafc;">£</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>`;
+                
+            c.innerHTML += h;
+        });
+        
+        let solosOnly = [];
+        appState.forEach(e => {
+            if (!e.isTeam) {
+                solosOnly.push(e);
+            }
+        });
+        
+        for (let i = 0; i < solosOnly.length; i += 4) {
+            let batch = [];
+            for (let j = 0; j < 4; j++) {
+                if (i + j < solosOnly.length) {
+                    batch.push(solosOnly[i + j]);
+                }
+            }
+            
+            const page = document.createElement('div'); 
+            page.style.pageBreakAfter = 'always';
+            
+            batch.forEach(e => { 
+                const a = e.anglers[0]; 
+                let aName = a.name || 'UNNAMED';
+                let mobStr = (accEnabled && a.mobility) ? ' [A]' : '';
+                
+                let h = `<div class="dispatch-slip">
+                            <div class="dispatch-header">
+                                <h1>SOLO COMPETITOR: ${aName} ${mobStr}</h1>
+                            </div>
+                            <table class="print-table">
+                                <thead>
+                                    <tr>
+                                        <th>DAY 1</th>
+                                        ${matchDays === 2 ? '<th>DAY 2</th>' : ''}
+                                        <th style="width:100px;">PRIZE POT (£)</th>
+                                        <th style="width:120px;">SECRET PAIRS (£)</th>
+                                        <th style="width:120px;">TOTAL</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>${a.z1} ${a.p1}</td>
+                                        ${matchDays === 2 ? `<td>${a.z2} ${a.p2}</td>` : ''}
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>`; 
+                page.innerHTML += h; 
+            });
+            
+            c.appendChild(page);
+        }
+        
+        document.body.classList.add('printing-dispatch'); 
+        window.print(); 
+        document.body.classList.remove('printing-dispatch');
+    }
+
+    function exportToCSV() {
+        let csv = matchDays === 2 ? "NAME,TEAM,DAY 1 ZONE,DAY 2 ZONE\n" : "NAME,TEAM,DAY 1 ZONE\n"; 
+        
+        appState.forEach(g => { 
+            g.anglers.forEach(a => { 
+                let aName = a.name || '';
+                let capStr = a.captain ? ' [C]' : '';
+                let tName = g.isTeam ? (g.tName || '') : '';
+                if (matchDays === 2) {
+                    csv += `${aName}${capStr},${tName},${a.z1},${a.z2}\n`; 
+                } else {
+                    csv += `${aName}${capStr},${tName},${a.z1}\n`;
+                }
+            }); 
+        });
+        
+        const b = new Blob([csv], { type: 'text/csv' }); 
+        const l = document.createElement('a'); 
+        l.href = URL.createObjectURL(b); 
+        l.download = "COMPETITOR_LIST.csv"; 
+        l.click();
+    }
+
+    function shareDraw() {
+        const el = document.getElementById('resultsSection'); 
+        
+        el.classList.add('mobile-pdf-export');
+        
+        let opt = { 
+            margin: 0.1, 
+            filename: 'DRAW.pdf', 
+            image: { type: 'jpeg', quality: 0.98 }, 
+            html2canvas: { scale: 2, scrollY: 0 }, 
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } 
+        };
+        
+        html2pdf().set(opt).from(el).save().then(() => {
+            el.classList.remove('mobile-pdf-export');
+        });
+    }
+
+    let saveTimeout;
+    document.addEventListener('input', function(e) {
+        if (isAppReady && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) {
+            persistState();
+            const ind = document.getElementById('saveIndicator');
+            if (ind) {
+                ind.style.opacity = '1';
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    ind.style.opacity = '0';
+                }, 1000);
+            }
+        }
+    });
+
+    window.onload = () => {
+        isAppReady = false; 
+        let saved = localStorage.getItem('zonedraw_current_state_v12');
+        
+        if (saved) {
+            let e = JSON.parse(saved); 
+            
+            document.getElementById('matchTitle').value = e.title || '';
+            document.getElementById('accPegs1_a').value = e.safePegs1_a || ''; 
+            document.getElementById('accPegs2_a').value = e.safePegs2_a || '';
+            
+            if (e.anchorZone) {
+                document.getElementById('anchorZoneSelect').value = e.anchorZone;
+            }
+            if (e.anchorZone2) {
+                document.getElementById('anchorZoneSelect2').value = e.anchorZone2;
+            }
+            
+            let mobMode = e.mobilityMode || 'A';
+            setMobilityMode(mobMode); 
+            
+            let dCount = e.days || 2;
+            setDays(dCount); 
+            
+            appState = e.data || [];
+            currentZoneSize = e.zoneSize || 0;
+            
+            if (e.accEnabled) {
+                accEnabled = true;
+            } else {
+                accEnabled = false;
+            }
+            
+            applyAccToggleUI();
+
+            if (appState.length > 0) { 
+                document.getElementById('initMatchBtn').style.display = 'none'; 
+                document.getElementById('commandBar').style.display = 'flex'; 
+                document.getElementById('amendTools').style.display = 'flex';
+                
+                let tCount = 0;
+                let iCount = 0;
+                
+                appState.forEach(item => {
+                    if (item.isTeam) {
+                        tCount++;
+                    } else {
+                        iCount++;
+                    }
+                });
+                
+                document.getElementById('initTeams').value = tCount;
+                document.getElementById('initIndivs').value = iCount;
+            }
+            
+            let hasDraw = false;
+            appState.forEach(x => {
+                x.anglers.forEach(a => {
+                    if (a.z1) hasDraw = true;
+                });
+            });
+            
+            if (hasDraw) {
+                displayDraw();
+            } else {
+                handleAmend(false);
+            }
+        } else { 
+            startNewDraw(); 
+        }
+        
+        setTimeout(() => { 
+            isAppReady = true; 
+        }, 500); 
+    };
+</script>
+</body>
+</html>
