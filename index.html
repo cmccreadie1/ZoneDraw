@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.38</title>
+    <title>ZONEDRAW v12.04.39</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -275,19 +275,40 @@
         .zone-key-container {
             display: flex;
             justify-content: center;
-            gap: 12px;
             margin-bottom: 25px;
-            flex-wrap: wrap;
+            width: 100%;
         }
 
-        .zone-key-pill {
-            color: white;
+        .legend-box {
+            display: flex;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 16px;
+            gap: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .swatch {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .l-text {
             font-weight: 900;
-            font-size: 11px;
-            padding: 6px 16px;
-            border-radius: 8px;
-            letter-spacing: 1px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 12px;
+            color: var(--text);
+            letter-spacing: 0.5px;
         }
 
         .anomaly-banner {
@@ -513,7 +534,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.38</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.39</span></div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
 </div>
@@ -633,10 +654,12 @@
     <h1 id="resTitle" style="text-align:center; font-size:1.8rem; margin: 10px 0 15px; color: black;"></h1>
     
     <div class="zone-key-container no-print">
-        <div id="keyRed" class="zone-key-pill" style="background:var(--red-color);">RED</div>
-        <div id="keyYellow" class="zone-key-pill" style="background:var(--yellow-color);">YELLOW</div>
-        <div id="keyGreen" class="zone-key-pill" style="background:var(--green-color);">GREEN</div>
-        <div id="keyBlue" class="zone-key-pill" style="background:var(--blue-color);">BLUE</div>
+        <div class="legend-box">
+            <div class="legend-item"><span class="swatch" style="background:var(--red-color);"></span><span id="keyRed" class="l-text">RED</span></div>
+            <div class="legend-item"><span class="swatch" style="background:var(--yellow-color);"></span><span id="keyYellow" class="l-text">YELLOW</span></div>
+            <div class="legend-item"><span class="swatch" style="background:var(--green-color);"></span><span id="keyGreen" class="l-text">GREEN</span></div>
+            <div class="legend-item"><span class="swatch" style="background:var(--blue-color);"></span><span id="keyBlue" class="l-text">BLUE</span></div>
+        </div>
     </div>
 
     <div id="resultsArea">
@@ -2347,7 +2370,8 @@
             let dCount = e.days || 2;
             setDays(dCount); 
             
-            appState = e.data || []; 
+            appState = e.data || [];
+            currentZoneSize = e.zoneSize || 0;
             
             if (e.accEnabled) {
                 accEnabled = true;
