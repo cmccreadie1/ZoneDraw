@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.42</title>
+    <title>ZONEDRAW v12.04.43</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -239,6 +239,13 @@
             opacity: 1;
             z-index: 10;
             position: relative;
+        }
+
+        .clash-glow { 
+            border: 3px solid #ef4444 !important; 
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.8) !important; 
+            background: #fef2f2 !important; 
+            color: #ef4444 !important; 
         }
 
         .peg-num { 
@@ -534,7 +541,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.42</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.43</span></div>
         <div id="saveIndicator" style="position: fixed; top: 15px; right: 20px; background: #4caf50; color: white; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 9999; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✓ SAVED</div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
@@ -634,6 +641,8 @@
 <div id="resultsSection">
     <div class="no-print" style="display:flex; gap:12px; justify-content:center; margin-bottom:30px; flex-wrap:wrap;">
         <button onclick="handleSafeEdit()" class="btn-action-outline" style="border-color:#10b981; color:#10b981;">✏️ AMEND NAMES</button>
+        <button onclick="injectLatecomer(true)" class="btn-action-outline" style="border-color:#10b981; color:#10b981;">➕ LATE TEAM</button>
+        <button onclick="injectLatecomer(false)" class="btn-action-outline" style="border-color:#10b981; color:#10b981;">➕ LATE SOLO</button>
         <button onclick="showRedrawModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444;">⚠️ RE-DRAW MATCH</button>
         <button onclick="toggleSwapMode()" id="swapBtn" class="btn-action-outline" style="border-color:#8b5cf6; color:#8b5cf6;">SWAP PEGS</button>
         <button onclick="toggleExportMenu()" id="exportToggleBtn" class="btn-action" style="background:#0f172a; border-color:#0f172a;">🖨️ OUTPUT MENU</button>
@@ -688,6 +697,7 @@
         <div id="amendTools" style="display:none; gap:10px;">
             <button class="btn-action-outline" onclick="addNewStateItem(true)">+ TEAM</button>
             <button class="btn-action-outline" onclick="addNewStateItem(false)">+ SOLO</button>
+            <button id="undoBtn" class="btn-action-outline" style="border-color:#f59e0b; color:#f59e0b; display:none;" onclick="undoLastAction()">↩️ UNDO</button>
         </div>
     </div>
     
@@ -761,6 +771,7 @@
     let swapObj1 = null; 
     let mobilityMode = 'A'; 
     let accEnabled = false; 
+    let trashCan = null;
 
     const genId = () => {
         return 'id_' + Math.random().toString(36).substr(2, 9);
@@ -938,6 +949,7 @@
         setMobilityMode('A'); 
         setDays(2);
         accEnabled = false;
+        trashCan = null;
         applyAccToggleUI();
         
         document.querySelectorAll('body > div[id$="Section"]').forEach(s => {
@@ -949,6 +961,7 @@
         document.getElementById('editDrawBanner').style.display = 'none';
         document.getElementById('initMatchBtn').style.display = 'inline-block';
         document.getElementById('commandBar').style.display = 'none';
+        document.getElementById('undoBtn').style.display = 'none';
         
         updateTicker();
         renderStateToScreen(); 
@@ -956,6 +969,8 @@
 
     function bulkInit() {
         appState = [];
+        trashCan = null;
+        document.getElementById('undoBtn').style.display = 'none';
         
         let tVal = document.getElementById('initTeams').value;
         let iVal = document.getElementById('initIndivs').value;
@@ -1167,6 +1182,8 @@
     function deleteStateEntry(id) { 
         const idx = appState.findIndex(e => e.id === id); 
         if (idx > -1) { 
+            trashCan = { action: 'delete', data: appState[idx], index: idx };
+            document.getElementById('undoBtn').style.display = 'inline-block';
             appState.splice(idx, 1); 
             renderStateToScreen(); 
         } 
@@ -1176,18 +1193,38 @@
         const idx = appState.findIndex(e => e.id === id); 
         if (idx > -1) { 
             const t = appState.splice(idx, 1)[0]; 
+            let nIds = [];
             
             t.anglers.forEach(a => { 
+                let nId = genId();
+                nIds.push(nId);
                 appState.push({ 
-                    id: genId(), 
+                    id: nId, 
                     isTeam: false, 
                     tName: '', 
                     anglers: [{...a}] 
                 }); 
             }); 
             
+            trashCan = { action: 'break', originalTeam: t, index: idx, newIds: nIds };
+            document.getElementById('undoBtn').style.display = 'inline-block';
             renderStateToScreen(); 
         } 
+    }
+
+    function undoLastAction() {
+        if (!trashCan) return;
+
+        if (trashCan.action === 'delete') {
+            appState.splice(trashCan.index, 0, trashCan.data);
+        } else if (trashCan.action === 'break') {
+            appState = appState.filter(e => !trashCan.newIds.includes(e.id));
+            appState.splice(trashCan.index, 0, trashCan.originalTeam);
+        }
+
+        trashCan = null;
+        document.getElementById('undoBtn').style.display = 'none';
+        renderStateToScreen();
     }
     
     function mergeSelected() { 
@@ -1795,6 +1832,7 @@
 
     function runValidator() {
         let errors = [];
+        let clashMap = [];
         let pM1 = { RED:[], YELLOW:[], GREEN:[], BLUE:[] };
         let pM2 = { RED:[], YELLOW:[], GREEN:[], BLUE:[] };
 
@@ -1802,34 +1840,46 @@
             let tN = team.tName || 'SOLO';
             
             if (team.isTeam) {
-                let d1Zones = [];
-                let d2Zones = [];
+                let d1Z = {};
+                let d2Z = {};
                 
-                team.anglers.forEach(a => {
+                team.anglers.forEach((a, aI) => {
                     if (a.z1) {
-                        if (d1Zones.includes(a.z1)) {
-                            errors.push(`TEAM CLASH: '${tN}' has multiple anglers in ${a.z1} on DAY 1.`);
-                        }
-                        d1Zones.push(a.z1);
+                        if (!d1Z[a.z1]) d1Z[a.z1] = [];
+                        d1Z[a.z1].push(aI);
                     }
                     if (matchDays === 2 && a.z2) {
-                        if (d2Zones.includes(a.z2)) {
-                            errors.push(`TEAM CLASH: '${tN}' has multiple anglers in ${a.z2} on DAY 2.`);
-                        }
-                        d2Zones.push(a.z2);
+                        if (!d2Z[a.z2]) d2Z[a.z2] = [];
+                        d2Z[a.z2].push(aI);
+                    }
+                });
+                
+                Object.keys(d1Z).forEach(z => {
+                    if (d1Z[z].length > 1) {
+                        errors.push(`TEAM CLASH: '${tN}' has multiple anglers in ${z} on DAY 1.`);
+                        d1Z[z].forEach(idx => clashMap.push({eId: team.id, aI: idx, day: 1}));
+                    }
+                });
+                
+                Object.keys(d2Z).forEach(z => {
+                    if (d2Z[z].length > 1) {
+                        errors.push(`TEAM CLASH: '${tN}' has multiple anglers in ${z} on DAY 2.`);
+                        d2Z[z].forEach(idx => clashMap.push({eId: team.id, aI: idx, day: 2}));
                     }
                 });
             }
             
-            team.anglers.forEach(a => {
+            team.anglers.forEach((a, aI) => {
                 let aN = a.name || 'UNNAMED';
                 
                if (!a.z1 || a.p1 === 9999 || a.p1 === undefined) {
                     errors.push(`GHOST PEG: '${aN}' has an invalid peg on DAY 1.`);
+                    clashMap.push({eId: team.id, aI: aI, day: 1});
                 }
                 
                 if (matchDays === 2 && (!a.z2 || a.p2 === 9999 || a.p2 === undefined)) {
                     errors.push(`GHOST PEG: '${aN}' has an invalid peg on DAY 2.`);
+                    clashMap.push({eId: team.id, aI: aI, day: 2});
                 }
                 
                 let allowedDouble = false;
@@ -1837,22 +1887,32 @@
                     allowedDouble = true;
                 }
                 
-                if (matchDays === 2 && a.z1 === a.z2 && !allowedDouble) {
+                if (matchDays === 2 && a.z1 && a.z2 && a.z1 === a.z2 && !allowedDouble) {
                     errors.push(`DOUBLE ZONE: '${aN}' fishes ${a.z1} both days.`);
+                    clashMap.push({eId: team.id, aI: aI, day: 1});
+                    clashMap.push({eId: team.id, aI: aI, day: 2});
                 }
                 
                 if (a.z1 && a.p1 && a.p1 !== 9999) {
-                    if (pM1[a.z1].includes(a.p1)) {
+                    let dup = pM1[a.z1].find(p => p.val === a.p1);
+                    if (dup) {
                         errors.push(`PEG CLASH: '${a.z1} ${a.p1}' duplicated on DAY 1.`);
+                        clashMap.push({eId: team.id, aI: aI, day: 1});
+                        clashMap.push({eId: dup.eId, aI: dup.aI, day: 1});
+                    } else {
+                        pM1[a.z1].push({val: a.p1, eId: team.id, aI: aI});
                     }
-                    pM1[a.z1].push(a.p1);
                 }
                 
                 if (matchDays === 2 && a.z2 && a.p2 && a.p2 !== 9999) {
-                    if (pM2[a.z2].includes(a.p2)) {
+                    let dup = pM2[a.z2].find(p => p.val === a.p2);
+                    if (dup) {
                         errors.push(`PEG CLASH: '${a.z2} ${a.p2}' duplicated on DAY 2.`);
+                        clashMap.push({eId: team.id, aI: aI, day: 2});
+                        clashMap.push({eId: dup.eId, aI: dup.aI, day: 2});
+                    } else {
+                        pM2[a.z2].push({val: a.p2, eId: team.id, aI: aI});
                     }
-                    pM2[a.z2].push(a.p2);
                 }
             });
         });
@@ -1864,7 +1924,100 @@
             }
         });
         
-        return uniqueErrors;
+        return { list: uniqueErrors, markers: clashMap };
+    }
+
+    function injectLatecomer(isTeam) {
+        let used1 = { 'RED':[], 'YELLOW':[], 'GREEN':[], 'BLUE':[] };
+        let used2 = { 'RED':[], 'YELLOW':[], 'GREEN':[], 'BLUE':[] };
+        
+        appState.forEach(e => {
+            e.anglers.forEach(a => {
+                if(a.z1 && a.p1 && a.p1 !== 9999) used1[a.z1].push(a.p1);
+                if(matchDays === 2 && a.z2 && a.p2 && a.p2 !== 9999) used2[a.z2].push(a.p2);
+            });
+        });
+
+        let avail1 = { 'RED':[], 'YELLOW':[], 'GREEN':[], 'BLUE':[] };
+        let avail2 = { 'RED':[], 'YELLOW':[], 'GREEN':[], 'BLUE':[] };
+        
+        let hasEnough = true;
+        zones.forEach((z, idx) => {
+            for(let i=1; i<=currentZoneSize; i++) {
+                let pN = (idx * currentZoneSize) + i;
+                if(!used1[z].includes(pN)) avail1[z].push(pN);
+                if(matchDays === 2 && !used2[z].includes(pN)) avail2[z].push(pN);
+            }
+            if(isTeam && (avail1[z].length === 0 || (matchDays === 2 && avail2[z].length === 0))) {
+                hasEnough = false;
+            }
+        });
+
+        let totalAvail1 = Object.values(avail1).flat().length;
+        if(!hasEnough || (!isTeam && totalAvail1 === 0)) {
+            alert("Not enough empty pegs in the bucket! You must hit '⚠️ RE-DRAW MATCH' to mathematically expand the zones.");
+            return;
+        }
+
+        let newEntry = {
+            id: genId(),
+            isTeam: isTeam,
+            tName: '',
+            anglers: []
+        };
+
+        if(isTeam) {
+            let d1Z = [...zones].sort(() => Math.random() - 0.5); 
+            let d2Z = [d1Z[1], d1Z[2], d1Z[3], d1Z[0]];
+            
+            for(let i=0; i<4; i++) {
+                let p1_arr = avail1[d1Z[i]];
+                let p1_val = p1_arr.splice(Math.floor(Math.random() * p1_arr.length), 1)[0];
+                
+                let p2_val = undefined;
+                if(matchDays === 2) {
+                    let p2_arr = avail2[d2Z[i]];
+                    p2_val = p2_arr.splice(Math.floor(Math.random() * p2_arr.length), 1)[0];
+                }
+                
+                newEntry.anglers.push({
+                    name: '',
+                    z1: d1Z[i], p1: p1_val,
+                    z2: matchDays === 2 ? d2Z[i] : undefined, p2: p2_val
+                });
+            }
+        } else {
+            let flat1 = [];
+            zones.forEach(z => avail1[z].forEach(p => flat1.push({z, p})));
+            let picked1 = flat1[Math.floor(Math.random() * flat1.length)];
+            avail1[picked1.z] = avail1[picked1.z].filter(p => p !== picked1.p);
+            
+            let picked2 = { z: undefined, p: undefined };
+            if(matchDays === 2) {
+                let flat2 = [];
+                zones.forEach(z => {
+                    if(z !== picked1.z) avail2[z].forEach(p => flat2.push({z, p}));
+                });
+                if(flat2.length === 0) {
+                    zones.forEach(z => avail2[z].forEach(p => flat2.push({z, p})));
+                }
+                picked2 = flat2[Math.floor(Math.random() * flat2.length)];
+            }
+            
+            newEntry.anglers.push({
+                name: '',
+                z1: picked1.z, p1: picked1.p,
+                z2: matchDays === 2 ? picked2.z : undefined, p2: matchDays === 2 ? picked2.p : undefined
+            });
+        }
+        
+        appState.push(newEntry);
+        displayDraw();
+        
+        setTimeout(() => {
+            handleSafeEdit();
+            alert("Latecomer module successfully injected and assigned leftover pegs. Please fill in their names.");
+        }, 50); 
     }
 
     function isPegSafe(p, d) { 
@@ -1920,7 +2073,9 @@
         document.getElementById('keyGreen').innerText = `GREEN (${(s*2)+1}-${s*3})`;
         document.getElementById('keyBlue').innerText = `BLUE (${(s*3)+1}-${s*4})`;
 
-        const anom = runValidator(); 
+        const validation = runValidator(); 
+        const anom = validation.list;
+        const markers = validation.markers;
         const banner = document.getElementById('anomalyBanner'); 
         const list = document.getElementById('anomalyList');
         
@@ -1971,18 +2126,24 @@
             g.anglers.forEach((a, aI) => {
                 let p1C = '';
                 if (isSwapMode) {
-                    p1C = 'swap-active';
+                    p1C += ' swap-active';
                 }
                 if (swapObj1 && swapObj1.eId === g.id && swapObj1.aI === aI && swapObj1.day === 1) {
                     p1C += ' swap-selected';
                 }
+                if (markers.find(m => m.eId === g.id && m.aI === aI && m.day === 1)) {
+                    p1C += ' clash-glow';
+                }
                 
                 let p2C = '';
                 if (isSwapMode) {
-                    p2C = 'swap-active';
+                    p2C += ' swap-active';
                 }
                 if (swapObj1 && swapObj1.eId === g.id && swapObj1.aI === aI && swapObj1.day === 2) {
                     p2C += ' swap-selected';
+                }
+                if (markers.find(m => m.eId === g.id && m.aI === aI && m.day === 2)) {
+                    p2C += ' clash-glow';
                 }
                 
                 let aName = a.name || '';
@@ -1997,11 +2158,11 @@
                 
                 h += `<div class="res-row">
                         <span class="angler-name">${aName}${cTag}${aTag}</span>
-                        <div class="draw-pill ${p1C}" style="background:${d1Bg}" onclick="handleSwapClick('${g.id}',${aI},1)">
+                        <div class="draw-pill${p1C}" style="background:${d1Bg}" onclick="handleSwapClick('${g.id}',${aI},1)">
                             <span>${a.z1}</span> <span class="peg-num">${a.p1}</span>${d1SafeTag}
                         </div>
-                        <div class="draw-pill ${p2C}" style="background:${d2Bg}" onclick="handleSwapClick('${g.id}',${aI},2)">
-                            <span>${a.z2}</span> <span class="peg-num">${a.p2}</span>${d2SafeTag}
+                        <div class="draw-pill${p2C}" style="background:${d2Bg}" onclick="handleSwapClick('${g.id}',${aI},2)">
+                            <span>${a.z2 || '-'}</span> <span class="peg-num">${a.p2 || '-'}</span>${d2SafeTag}
                         </div>
                       </div>`;
             });
@@ -2122,7 +2283,7 @@
         const c = document.getElementById('rosterSection'); 
         c.innerHTML = '';
         
-        let days = [1, 2];
+        let days = matchDays === 2 ? [1, 2] : [1];
         
         days.forEach(d => { 
             zones.forEach(z => {
@@ -2218,7 +2379,7 @@
                                 <tr>
                                     <th>NAME</th>
                                     <th>DAY 1</th>
-                                    <th>DAY 2</th>
+                                    ${matchDays === 2 ? '<th>DAY 2</th>' : ''}
                                     <th style="width:100px;">PRIZE POT (£)</th>
                                     <th style="width:120px;">SECRET PAIRS (£)</th>
                                     <th style="width:120px;">ANGLER TOTAL</th>
@@ -2234,15 +2395,16 @@
                 h += `<tr>
                         <td>${aName} ${capStr}${mobStr}</td>
                         <td>${a.z1} ${a.p1}</td>
-                        <td>${a.z2} ${a.p2}</td>
+                        ${matchDays === 2 ? `<td>${a.z2} ${a.p2}</td>` : ''}
                         <td></td>
                         <td></td>
                         <td></td>
                       </tr>`; 
             });
             
+            let colSpan = matchDays === 2 ? 5 : 4;
             h += `          <tr>
-                                <td colspan="5" style="text-align: right; font-weight: 900; font-size: 16px; padding: 15px;">TOTAL TEAM CASH HANDOVER:</td>
+                                <td colspan="${colSpan}" style="text-align: right; font-weight: 900; font-size: 16px; padding: 15px;">TOTAL TEAM CASH HANDOVER:</td>
                                 <td style="font-weight: 900; font-size: 16px; background: #f8fafc;">£</td>
                             </tr>
                         </tbody>
@@ -2283,7 +2445,7 @@
                                 <thead>
                                     <tr>
                                         <th>DAY 1</th>
-                                        <th>DAY 2</th>
+                                        ${matchDays === 2 ? '<th>DAY 2</th>' : ''}
                                         <th style="width:100px;">PRIZE POT (£)</th>
                                         <th style="width:120px;">SECRET PAIRS (£)</th>
                                         <th style="width:120px;">TOTAL</th>
@@ -2292,7 +2454,7 @@
                                 <tbody>
                                     <tr>
                                         <td>${a.z1} ${a.p1}</td>
-                                        <td>${a.z2} ${a.p2}</td>
+                                        ${matchDays === 2 ? `<td>${a.z2} ${a.p2}</td>` : ''}
                                         <td></td>
                                         <td></td>
                                         <td></td>
@@ -2312,14 +2474,18 @@
     }
 
     function exportToCSV() {
-        let csv = "NAME,TEAM,DAY 1 ZONE,DAY 2 ZONE\n"; 
+        let csv = matchDays === 2 ? "NAME,TEAM,DAY 1 ZONE,DAY 2 ZONE\n" : "NAME,TEAM,DAY 1 ZONE\n"; 
         
         appState.forEach(g => { 
             g.anglers.forEach(a => { 
                 let aName = a.name || '';
                 let capStr = a.captain ? ' [C]' : '';
                 let tName = g.tName || 'SOLO';
-                csv += `${aName}${capStr},${tName},${a.z1},${a.z2}\n`; 
+                if (matchDays === 2) {
+                    csv += `${aName}${capStr},${tName},${a.z1},${a.z2}\n`; 
+                } else {
+                    csv += `${aName}${capStr},${tName},${a.z1}\n`;
+                }
             }); 
         });
         
