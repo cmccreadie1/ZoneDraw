@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.46</title>
+    <title>ZONEDRAW v12.04.47</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -652,7 +652,8 @@
         <button onclick="shareDraw()" class="btn-action" style="background:#64748b;">SHARE PDF</button>
         <button onclick="generateDispatchSlips()" class="btn-action" style="background:#0ea5e9;">TEAM SLIPS</button>
         <button onclick="printZoneRosters()" class="btn-action" style="background:#0ea5e9;">ZONE ROSTERS</button>
-        <button onclick="exportToCSV()" class="btn-action-outline" style="border-color:#10b981; color:#10b981;">EXCEL COMPETITOR LIST</button>
+        <button onclick="exportToCSV()" class="btn-action-outline" style="border-color:#10b981; color:#10b981;">EXCEL COMPETITOR LIST (CSV)</button>
+        <button id="copyExcelBtn" onclick="copyExcelData()" class="btn-action-outline" style="border-color:#10b981; color:#10b981;">📋 COPY EXCEL DATA</button>
     </div>
     <div id="swapPrompt" class="no-print" style="display:none; text-align:center; background:#8b5cf6; color:white; padding:15px; font-weight:900; margin-bottom:20px; border-radius:12px;">SWAP MODE ACTIVE (Select a specific day peg to swap)</div>
     
@@ -2045,6 +2046,28 @@
         }
     }
 
+    function copyExcelData() {
+        let tsv = matchDays === 2 ? "NAME\tTEAM\tDAY 1 ZONE\tDAY 2 ZONE\n" : "NAME\tTEAM\tDAY 1 ZONE\n";
+        
+        appState.forEach(g => { 
+            g.anglers.forEach(a => { 
+                let tName = g.isTeam ? (g.tName || '') : '';
+                if (matchDays === 2) {
+                    tsv += `${a.name || ''}\t${tName}\t${a.z1} ${a.p1 || ''}\t${a.z2} ${a.p2 || ''}\n`; 
+                } else {
+                    tsv += `${a.name || ''}\t${tName}\t${a.z1} ${a.p1 || ''}\n`;
+                }
+            }); 
+        });
+
+        navigator.clipboard.writeText(tsv).then(() => {
+            const btn = document.getElementById('copyExcelBtn');
+            const original = btn.innerText;
+            btn.innerText = "COPIED!";
+            setTimeout(() => btn.innerText = original, 2000);
+        });
+    }
+
     function displayDraw() {
         document.querySelectorAll('body > div[id$="Section"]').forEach(s => {
             s.style.display = 'none';
@@ -2561,50 +2584,3 @@
                 accEnabled = true;
             } else {
                 accEnabled = false;
-            }
-            
-            applyAccToggleUI();
-
-            if (appState.length > 0) { 
-                document.getElementById('initMatchBtn').style.display = 'none'; 
-                document.getElementById('commandBar').style.display = 'flex'; 
-                document.getElementById('amendTools').style.display = 'flex';
-                
-                let tCount = 0;
-                let iCount = 0;
-                
-                appState.forEach(item => {
-                    if (item.isTeam) {
-                        tCount++;
-                    } else {
-                        iCount++;
-                    }
-                });
-                
-                document.getElementById('initTeams').value = tCount;
-                document.getElementById('initIndivs').value = iCount;
-            }
-            
-            let hasDraw = false;
-            appState.forEach(x => {
-                x.anglers.forEach(a => {
-                    if (a.z1) hasDraw = true;
-                });
-            });
-            
-            if (hasDraw) {
-                displayDraw();
-            } else {
-                handleAmend(false);
-            }
-        } else { 
-            startNewDraw(); 
-        }
-        
-        setTimeout(() => { 
-            isAppReady = true; 
-        }, 500); 
-    };
-</script>
-</body>
-</html>
