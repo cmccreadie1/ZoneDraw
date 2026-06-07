@@ -2584,3 +2584,50 @@
                 accEnabled = true;
             } else {
                 accEnabled = false;
+            }
+            
+            applyAccToggleUI();
+
+            if (appState.length > 0) { 
+                document.getElementById('initMatchBtn').style.display = 'none'; 
+                document.getElementById('commandBar').style.display = 'flex'; 
+                document.getElementById('amendTools').style.display = 'flex';
+                
+                let tCount = 0;
+                let iCount = 0;
+                
+                appState.forEach(item => {
+                    if (item.isTeam) {
+                        tCount++;
+                    } else {
+                        iCount++;
+                    }
+                });
+                
+                document.getElementById('initTeams').value = tCount;
+                document.getElementById('initIndivs').value = iCount;
+            }
+            
+            let hasDraw = false;
+            appState.forEach(x => {
+                x.anglers.forEach(a => {
+                    if (a.z1) hasDraw = true;
+                });
+            });
+            
+            if (hasDraw) {
+                displayDraw();
+            } else {
+                handleAmend(false);
+            }
+        } else { 
+            startNewDraw(); 
+        }
+        
+        setTimeout(() => { 
+            isAppReady = true; 
+        }, 500); 
+    };
+</script>
+</body>
+</html>
