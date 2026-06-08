@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.53</title>
+    <title>ZONEDRAW v12.04.54</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -420,7 +420,7 @@
             color: var(--red-color); 
         }
 
-        /* --- Sticky Action Bar --- */
+        /* --- Smart Scroll Sticky Action Bar --- */
         .sticky-action-bar {
             position: fixed;
             bottom: 0;
@@ -435,6 +435,8 @@
             z-index: 8000;
             box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
             flex-wrap: wrap;
+            transform: translateY(0);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .sticky-action-bar .btn-master {
@@ -456,7 +458,7 @@
         .sticky-action-bar .btn-master strong { font-size: 16px; font-weight: 900; letter-spacing: 0.5px; }
         .sticky-action-bar .btn-master span { font-size: 11px; font-weight: 700; opacity: 0.8; margin-top: 4px; text-transform: none; }
 
-        /* --- Toast Banner --- */
+        /* --- Toast Banner & Live Indicator --- */
         #toastBanner {
             position: fixed;
             top: -100px;
@@ -473,6 +475,21 @@
             font-size: 16px;
             letter-spacing: 0.5px;
             text-align: center;
+        }
+
+        @keyframes livePulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        .live-dot {
+            display: inline-block;
+            animation: livePulse 1.5s infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+            margin-bottom: 2px;
+            font-size: 0.8em;
         }
 
         .group-label { 
@@ -574,7 +591,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.53</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.54</span></div>
         <div id="saveIndicator" style="position: fixed; top: 15px; right: 20px; background: #4caf50; color: white; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 9999; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✓ SAVED</div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
@@ -726,7 +743,7 @@
         <ul id="anomalyList"></ul>
     </div>
 
-    <h1 id="resTitle" style="text-align:center; font-size:1.8rem; margin: 10px 0 15px; color: black;"></h1>
+    <h1 id="resTitle" style="text-align:center; font-size:1.8rem; margin: 10px 0 25px; color: black;"></h1>
     
     <div id="beachMapContainer" class="no-print" style="margin-bottom: 30px; width: 100%;"></div>
 
@@ -852,6 +869,34 @@
         t.style.top = '20px';
         setTimeout(() => { t.style.top = '-100px'; }, 3000);
     }
+
+    // --- Smart Scroll Listener for Action Bar ---
+    let lastScrollY = window.scrollY;
+    window.addEventListener('scroll', () => {
+        const bar = document.getElementById('masterActionBar');
+        if (!bar || bar.style.display === 'none') return;
+        
+        const mMenu = document.getElementById('manageMenu');
+        const oMenu = document.getElementById('outputMenu');
+        if (mMenu.style.display === 'flex' || oMenu.style.display === 'flex') {
+            bar.style.transform = 'translateY(0)';
+            return;
+        }
+
+        const currentScrollY = window.scrollY;
+        
+        if (currentScrollY > lastScrollY && currentScrollY > 50) {
+            bar.style.transform = 'translateY(150%)'; 
+        } else {
+            bar.style.transform = 'translateY(0)';
+        }
+        
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 10) {
+            bar.style.transform = 'translateY(0)';
+        }
+        
+        lastScrollY = currentScrollY;
+    }, { passive: true });
 
     function toggleMasterMenu(menuType) {
         const mMenu = document.getElementById('manageMenu');
@@ -1711,7 +1756,7 @@
     }
 
     function buildBeachMap(day, s) {
-        let html = `<div style="display:flex; width:100%; border-radius:8px; overflow:hidden; border:2px solid var(--text); margin-bottom: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">`;
+        let html = `<div style="display:flex; width:100%; border-radius:6px; overflow:hidden; border:2px solid var(--text); margin-bottom: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">`;
         zones.forEach((z, idx) => {
             let baseMax = (idx + 1) * s;
             let baseMin = (idx * s) + 1;
@@ -1730,9 +1775,8 @@
             
             let bg = zColors[z];
             let label = highestAlpha ? `${baseMin}-${baseMax} + ${baseMax}${highestAlpha}` : `${baseMin}-${baseMax}`;
-            html += `<div style="flex:1; background:${bg}; padding:6px 2px; text-align:center; color:white; font-weight:900; font-size:12px; text-shadow:1px 1px 2px rgba(0,0,0,0.5); border-right:1px solid rgba(255,255,255,0.3);">
-                        <div style="font-size:10px; opacity:0.9; margin-bottom:2px;">${z}</div>
-                        <div>${label}</div>
+            html += `<div style="flex:1; background:${bg}; padding:2px; text-align:center; color:white; font-weight:900; font-size:11px; text-shadow:1px 1px 2px rgba(0,0,0,0.5); border-right:1px solid rgba(255,255,255,0.3); line-height:1.2;">
+                        <span style="font-size:9px; opacity:0.9;">${z}:</span> <span>${label}</span>
                      </div>`;
         });
         html += `</div>`;
@@ -1744,7 +1788,9 @@
         document.getElementById('resultsSection').style.display = 'block';
         
         let titleVal = document.getElementById('matchTitle').value;
-        document.getElementById('resTitle').innerText = titleVal ? titleVal : "DRAW";
+        let titleStr = titleVal ? `LIVE: ${titleVal}` : "LIVE DRAW";
+        document.getElementById('resTitle').innerHTML = `<span class="live-dot">🔴</span> ${titleStr}`;
+        
         document.getElementById('commandBar').style.display = 'none';
         document.getElementById('masterActionBar').style.display = 'flex';
 
@@ -1757,11 +1803,11 @@
 
         let mapHtml = '';
         if (matchDays >= 1) {
-            mapHtml += `<div style="font-size:10px; font-weight:900; color:#64748b; margin-left: 5px; margin-bottom:3px;">DAY 1 SHORELINE</div>`;
+            mapHtml += `<div style="font-size:10px; font-weight:900; color:#64748b; margin-left: 5px; margin-bottom:2px;">DAY 1 SHORELINE</div>`;
             mapHtml += buildBeachMap(1, s);
         }
         if (matchDays === 2) {
-            mapHtml += `<div style="font-size:10px; font-weight:900; color:#64748b; margin-left: 5px; margin-bottom:3px;">DAY 2 SHORELINE</div>`;
+            mapHtml += `<div style="font-size:10px; font-weight:900; color:#64748b; margin-left: 5px; margin-bottom:2px;">DAY 2 SHORELINE</div>`;
             mapHtml += buildBeachMap(2, s);
         }
         document.getElementById('beachMapContainer').innerHTML = mapHtml;
