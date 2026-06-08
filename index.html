@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.52</title>
+    <title>ZONEDRAW v12.04.53</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -574,7 +574,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.52</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.53</span></div>
         <div id="saveIndicator" style="position: fixed; top: 15px; right: 20px; background: #4caf50; color: white; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 9999; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✓ SAVED</div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
@@ -881,7 +881,7 @@
                 oMenu.style.display = 'none';
                 setClose(btnM);
                 resetO();
-                window.scrollTo(0,0);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
                 mMenu.style.display = 'none';
                 resetM();
@@ -892,7 +892,7 @@
                 mMenu.style.display = 'none';
                 setClose(btnO);
                 resetM();
-                window.scrollTo(0,0);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
                 oMenu.style.display = 'none';
                 resetO();
@@ -1711,7 +1711,7 @@
     }
 
     function buildBeachMap(day, s) {
-        let html = `<div style="display:flex; width:100%; border-radius:12px; overflow:hidden; border:2px solid var(--text); box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;">`;
+        let html = `<div style="display:flex; width:100%; border-radius:8px; overflow:hidden; border:2px solid var(--text); margin-bottom: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">`;
         zones.forEach((z, idx) => {
             let baseMax = (idx + 1) * s;
             let baseMin = (idx * s) + 1;
@@ -1729,9 +1729,10 @@
             }));
             
             let bg = zColors[z];
-            html += `<div style="flex:1; background:${bg}; padding:10px 5px; text-align:center; color:white; font-weight:900; font-size:14px; text-shadow:1px 1px 2px rgba(0,0,0,0.5); border-right:2px solid rgba(255,255,255,0.2);">
-                        <div style="font-size:11px; opacity:0.9; margin-bottom:2px;">${z}</div>
-                        <div>${baseMin} - ${baseMax}${highestAlpha}</div>
+            let label = highestAlpha ? `${baseMin}-${baseMax} + ${baseMax}${highestAlpha}` : `${baseMin}-${baseMax}`;
+            html += `<div style="flex:1; background:${bg}; padding:6px 2px; text-align:center; color:white; font-weight:900; font-size:12px; text-shadow:1px 1px 2px rgba(0,0,0,0.5); border-right:1px solid rgba(255,255,255,0.3);">
+                        <div style="font-size:10px; opacity:0.9; margin-bottom:2px;">${z}</div>
+                        <div>${label}</div>
                      </div>`;
         });
         html += `</div>`;
@@ -1754,14 +1755,13 @@
         }
         const s = currentZoneSize;
 
-        // Dynamic Beach Map Shoreline Generation
         let mapHtml = '';
         if (matchDays >= 1) {
-            mapHtml += `<div style="font-size:12px; font-weight:900; color:#64748b; margin-bottom:5px; margin-left: 5px;">DAY 1 SHORELINE MAP</div>`;
+            mapHtml += `<div style="font-size:10px; font-weight:900; color:#64748b; margin-left: 5px; margin-bottom:3px;">DAY 1 SHORELINE</div>`;
             mapHtml += buildBeachMap(1, s);
         }
         if (matchDays === 2) {
-            mapHtml += `<div style="font-size:12px; font-weight:900; color:#64748b; margin-bottom:5px; margin-left: 5px;">DAY 2 SHORELINE MAP</div>`;
+            mapHtml += `<div style="font-size:10px; font-weight:900; color:#64748b; margin-left: 5px; margin-bottom:3px;">DAY 2 SHORELINE</div>`;
             mapHtml += buildBeachMap(2, s);
         }
         document.getElementById('beachMapContainer').innerHTML = mapHtml;
