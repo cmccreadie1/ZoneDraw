@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zonedraw-v12.04.49';
+const CACHE_NAME = 'zonedraw-v12.04.50';
 const urlsToCache = [
   './',
   './index.html',
