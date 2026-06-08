@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.51</title>
+    <title>ZONEDRAW v12.04.52</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -43,7 +43,7 @@
             text-transform: uppercase; 
             line-height: 1.2; 
             overflow-x: hidden; 
-            padding-bottom: 120px; /* Space for sticky bar */
+            padding-bottom: 120px;
         }
 
         input, select { 
@@ -269,45 +269,6 @@
             font-size: 12px; 
         }
 
-        .zone-key-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 25px;
-            width: 100%;
-        }
-
-        .legend-box {
-            display: flex;
-            background: white;
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            padding: 8px 16px;
-            gap: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .swatch {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
-            display: inline-block;
-        }
-
-        .l-text {
-            font-weight: 900;
-            font-size: 12px;
-            color: var(--text);
-            letter-spacing: 0.5px;
-        }
-
         .anomaly-banner {
             background: #fef2f2;
             border: 2px solid #ef4444;
@@ -352,6 +313,12 @@
 
         .btn-action:active { 
             transform: translateY(2px); 
+        }
+
+        .btn-action:disabled { 
+            background: #94a3b8; 
+            border-color: #94a3b8; 
+            cursor: not-allowed; 
         }
 
         .btn-action-outline { 
@@ -607,7 +574,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.51</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.52</span></div>
         <div id="saveIndicator" style="position: fixed; top: 15px; right: 20px; background: #4caf50; color: white; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 9999; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✓ SAVED</div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
@@ -761,14 +728,7 @@
 
     <h1 id="resTitle" style="text-align:center; font-size:1.8rem; margin: 10px 0 15px; color: black;"></h1>
     
-    <div class="zone-key-container no-print">
-        <div class="legend-box">
-            <div class="legend-item"><span class="swatch" style="background:var(--red-color);"></span><span id="keyRed" class="l-text">RED</span></div>
-            <div class="legend-item"><span class="swatch" style="background:var(--yellow-color);"></span><span id="keyYellow" class="l-text">YELLOW</span></div>
-            <div class="legend-item"><span class="swatch" style="background:var(--green-color);"></span><span id="keyGreen" class="l-text">GREEN</span></div>
-            <div class="legend-item"><span class="swatch" style="background:var(--blue-color);"></span><span id="keyBlue" class="l-text">BLUE</span></div>
-        </div>
-    </div>
+    <div id="beachMapContainer" class="no-print" style="margin-bottom: 30px; width: 100%;"></div>
 
     <div id="resultsArea">
         <div id="teamsBucketContainer" style="display:none;">
@@ -1388,20 +1348,17 @@
         const ancZ1 = document.getElementById('anchorZoneSelect').value;
         const ancZ2 = document.getElementById('anchorZoneSelect2').value;
         
-        // Calculate and LOCK zone size only if it's a fresh initial draw
         if (currentZoneSize === 0) {
             let tot = 0; 
             appState.forEach(e => { if (e.isTeam) tot += 4; else tot += 1; });
             currentZoneSize = Math.max(Math.ceil(tot / 4), 1); 
         }
-        
         let zSize = currentZoneSize;
         
         let p1 = zones.map((z, idx) => { 
             let p = []; for (let i = 1; i <= zSize; i++) p.push((idx * zSize) + i);
             p.sort(() => Math.random() - 0.5); return {z, p}; 
         });
-        
         let p2 = zones.map((z, idx) => { 
             let p = []; for (let i = 1; i <= zSize; i++) p.push((idx * zSize) + i);
             p.sort(() => Math.random() - 0.5); return {z, p}; 
@@ -1442,7 +1399,6 @@
                     if (leastClashes === 0) break; 
                 }
             }
-
             aEntries.forEach((e, idx) => {
                 let a = e.anglers.find(ang => ang.mobility);
                 a.preZ1 = bestPairing[idx].z1; a.preZ2 = bestPairing[idx].z2;
@@ -1754,6 +1710,34 @@
         });
     }
 
+    function buildBeachMap(day, s) {
+        let html = `<div style="display:flex; width:100%; border-radius:12px; overflow:hidden; border:2px solid var(--text); box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;">`;
+        zones.forEach((z, idx) => {
+            let baseMax = (idx + 1) * s;
+            let baseMin = (idx * s) + 1;
+            let highestAlpha = '';
+            
+            appState.forEach(e => e.anglers.forEach(a => {
+                let zp = day === 1 ? {z: a.z1, p: a.p1} : {z: a.z2, p: a.p2};
+                if (zp.z === z && zp.p !== undefined && zp.p !== 9999) {
+                    let pStr = String(zp.p);
+                    if (pStr.startsWith(String(baseMax))) {
+                        let alpha = pStr.replace(/[0-9]/g, '');
+                        if (alpha > highestAlpha) highestAlpha = alpha;
+                    }
+                }
+            }));
+            
+            let bg = zColors[z];
+            html += `<div style="flex:1; background:${bg}; padding:10px 5px; text-align:center; color:white; font-weight:900; font-size:14px; text-shadow:1px 1px 2px rgba(0,0,0,0.5); border-right:2px solid rgba(255,255,255,0.2);">
+                        <div style="font-size:11px; opacity:0.9; margin-bottom:2px;">${z}</div>
+                        <div>${baseMin} - ${baseMax}${highestAlpha}</div>
+                     </div>`;
+        });
+        html += `</div>`;
+        return html;
+    }
+
     function displayDraw() {
         document.querySelectorAll('body > div[id$="Section"]').forEach(s => s.style.display = 'none');
         document.getElementById('resultsSection').style.display = 'block';
@@ -1763,7 +1747,6 @@
         document.getElementById('commandBar').style.display = 'none';
         document.getElementById('masterActionBar').style.display = 'flex';
 
-        // Fallback safely if currentZoneSize was never set
         if (currentZoneSize === 0) {
             let totAnglers = 0;
             appState.forEach(e => { if (e.isTeam) totAnglers += 4; else totAnglers += 1; });
@@ -1771,30 +1754,17 @@
         }
         const s = currentZoneSize;
 
-        // Dynamic Legend Math
-        zones.forEach((z, idx) => {
-            let baseMax = (idx + 1) * s;
-            let baseMin = (idx * s) + 1;
-            let highestAlpha = '';
-            
-            appState.forEach(e => e.anglers.forEach(a => {
-                [ {z: a.z1, p: a.p1}, {z: a.z2, p: a.p2} ].forEach(zp => {
-                    if (zp.z === z && zp.p !== undefined && zp.p !== 9999) {
-                        let pStr = String(zp.p);
-                        if (pStr.startsWith(String(baseMax))) {
-                            let alpha = pStr.replace(/[0-9]/g, '');
-                            if (alpha > highestAlpha) highestAlpha = alpha;
-                        }
-                    }
-                });
-            }));
-            
-            let headerText = `${z} (${baseMin}-${baseMax}${highestAlpha})`;
-            if (z === 'RED') document.getElementById('keyRed').innerText = headerText;
-            if (z === 'YELLOW') document.getElementById('keyYellow').innerText = headerText;
-            if (z === 'GREEN') document.getElementById('keyGreen').innerText = headerText;
-            if (z === 'BLUE') document.getElementById('keyBlue').innerText = headerText;
-        });
+        // Dynamic Beach Map Shoreline Generation
+        let mapHtml = '';
+        if (matchDays >= 1) {
+            mapHtml += `<div style="font-size:12px; font-weight:900; color:#64748b; margin-bottom:5px; margin-left: 5px;">DAY 1 SHORELINE MAP</div>`;
+            mapHtml += buildBeachMap(1, s);
+        }
+        if (matchDays === 2) {
+            mapHtml += `<div style="font-size:12px; font-weight:900; color:#64748b; margin-bottom:5px; margin-left: 5px;">DAY 2 SHORELINE MAP</div>`;
+            mapHtml += buildBeachMap(2, s);
+        }
+        document.getElementById('beachMapContainer').innerHTML = mapHtml;
 
         const validation = runValidator(); 
         const banner = document.getElementById('anomalyBanner'); 
