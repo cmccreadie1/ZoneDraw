@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.50</title>
+    <title>ZONEDRAW v12.04.51</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -32,7 +32,6 @@
         html {
             scroll-behavior: smooth;
             scroll-padding-top: 100px;
-            scroll-padding-bottom: 120px;
         }
 
         body { 
@@ -44,6 +43,7 @@
             text-transform: uppercase; 
             line-height: 1.2; 
             overflow-x: hidden; 
+            padding-bottom: 120px; /* Space for sticky bar */
         }
 
         input, select { 
@@ -105,7 +105,7 @@
         #entrySection, #resultsSection, #dispatchSection, #rosterSection, #registrationPrintSection { 
             max-width: 1400px; 
             margin: 0 auto; 
-            padding: 70px 20px 140px; 
+            padding: 70px 20px 40px; 
             display: none; 
         }
 
@@ -255,16 +255,6 @@
             vertical-align: middle; 
         }
 
-        @keyframes pulse { 
-            0% { opacity: 1; } 
-            50% { opacity: 0.5; } 
-            100% { opacity: 1; } 
-        }
-
-        .a-name { 
-            color: var(--a-color); 
-        }
-
         .a-tag { 
             color: var(--a-color); 
             font-weight: 900; 
@@ -364,12 +354,6 @@
             transform: translateY(2px); 
         }
 
-        .btn-action:disabled { 
-            background: #94a3b8; 
-            border-color: #94a3b8; 
-            cursor: not-allowed; 
-        }
-
         .btn-action-outline { 
             background: white; 
             border: 2px solid var(--accent); 
@@ -413,7 +397,117 @@
             justify-content: space-between; 
             align-items: center; 
         }
+
+        /* --- UX Overhaul Horizontal Menu Styles --- */
+        .master-menu-grid { 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 10px; 
+            max-width: 1400px; 
+            margin: 0 auto 30px; 
+            padding: 0 10px;
+        }
+
+        .btn-ui { 
+            flex: 1 1 200px; 
+            background: white; 
+            border: 3px solid var(--border); 
+            border-radius: 12px; 
+            padding: 12px 15px; 
+            text-align: left; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            justify-content: center;
+            min-width: 150px;
+        }
+
+        .btn-ui:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-ui strong { 
+            font-size: 14px; 
+            font-weight: 900;
+            margin-bottom: 4px; 
+            letter-spacing: 0.5px;
+        }
+
+        .btn-ui span { 
+            font-size: 11px; 
+            font-weight: 600; 
+            text-transform: none; 
+            line-height: 1.3;
+        }
+
+        .btn-danger { 
+            background: #fef2f2; 
+            border-color: var(--red-color); 
+        }
         
+        .btn-danger strong, .btn-danger span { 
+            color: var(--red-color); 
+        }
+
+        /* --- Sticky Action Bar --- */
+        .sticky-action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 2px solid var(--border);
+            padding: 15px 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            z-index: 8000;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
+        }
+
+        .sticky-action-bar .btn-master {
+            flex: 1;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 15px;
+            border-radius: 12px;
+            border: 3px solid;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .sticky-action-bar .btn-master strong { font-size: 16px; font-weight: 900; letter-spacing: 0.5px; }
+        .sticky-action-bar .btn-master span { font-size: 11px; font-weight: 700; opacity: 0.8; margin-top: 4px; text-transform: none; }
+
+        /* --- Toast Banner --- */
+        #toastBanner {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981;
+            color: white;
+            font-weight: 900;
+            padding: 15px 30px;
+            border-radius: 12px;
+            z-index: 10000;
+            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
         .group-label { 
             grid-column: 1 / -1; 
             font-size: 1.4rem; 
@@ -456,99 +550,17 @@
             box-shadow: 0 25px 50px rgba(0,0,0,0.25); 
         }
 
-        /* --- UX Overhaul Menu Styles --- */
-        .master-menu-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-            gap: 15px; 
-            max-width: 1200px; 
-            margin: 0 auto 30px; 
-            padding: 0 20px;
-        }
-
-        .btn-ui { 
-            background: white; 
-            border: 3px solid var(--border); 
-            border-radius: 16px; 
-            padding: 20px; 
-            text-align: left; 
-            cursor: pointer; 
-            transition: 0.2s; 
-            display: flex; 
-            flex-direction: column; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            justify-content: center;
-        }
-
-        .btn-ui:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-        }
-
-        .btn-ui strong { 
-            font-size: 16px; 
-            font-weight: 900;
-            margin-bottom: 6px; 
-            letter-spacing: 0.5px;
-        }
-
-        .btn-ui span { 
-            font-size: 12px; 
-            font-weight: 600; 
-            text-transform: none; 
-            line-height: 1.4;
-        }
-
-        .btn-danger { 
-            background: #fef2f2; 
-            border-color: var(--red-color); 
-        }
-        
-        .btn-danger strong, .btn-danger span { 
-            color: var(--red-color); 
-        }
-
         /* --- PDF MOBILE EXPORT OVERRIDES --- */
-        .mobile-pdf-export .no-print {
-            display: none !important;
-        }
-        .mobile-pdf-export .bucket-grid {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 20px !important;
-        }
-        .mobile-pdf-export .zone-card {
-            width: 100% !important;
-            box-sizing: border-box !important;
-            page-break-inside: avoid !important;
-        }
-        .mobile-pdf-export #resultsSection {
-            padding: 10px !important;
-            width: 100% !important;
-            max-width: 420px !important;
-            margin: 0 !important;
-        }
-        .mobile-pdf-export .res-row {
-            grid-template-columns: 1fr auto auto !important;
-            gap: 15px !important;
-            padding: 10px 5px !important;
-        }
-        .mobile-pdf-export .res-row:nth-child(2) span {
-            font-size: 13px !important;
-        }
-        .mobile-pdf-export .angler-name {
-            font-size: 17px !important;
-        }
-        .mobile-pdf-export .draw-pill {
-            font-size: 13px !important;
-            padding: 8px 14px !important;
-        }
-        .mobile-pdf-export .peg-num {
-            font-size: 22px !important;
-        }
-        .mobile-pdf-export .zone-header {
-            font-size: 15px !important;
-        }
+        .mobile-pdf-export .no-print { display: none !important; }
+        .mobile-pdf-export .bucket-grid { display: flex !important; flex-direction: column !important; gap: 20px !important; }
+        .mobile-pdf-export .zone-card { width: 100% !important; box-sizing: border-box !important; page-break-inside: avoid !important; }
+        .mobile-pdf-export #resultsSection { padding: 10px !important; width: 100% !important; max-width: 420px !important; margin: 0 !important; }
+        .mobile-pdf-export .res-row { grid-template-columns: 1fr auto auto !important; gap: 15px !important; padding: 10px 5px !important; }
+        .mobile-pdf-export .res-row:nth-child(2) span { font-size: 13px !important; }
+        .mobile-pdf-export .angler-name { font-size: 17px !important; }
+        .mobile-pdf-export .draw-pill { font-size: 13px !important; padding: 8px 14px !important; }
+        .mobile-pdf-export .peg-num { font-size: 22px !important; }
+        .mobile-pdf-export .zone-header { font-size: 15px !important; }
         
         @media print { 
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -591,9 +603,11 @@
 </head>
 <body>
 
+<div id="toastBanner" class="no-print">✅ ACTION COMPLETED</div>
+
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.50</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.51</span></div>
         <div id="saveIndicator" style="position: fixed; top: 15px; right: 20px; background: #4caf50; color: white; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 9999; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✓ SAVED</div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
@@ -692,60 +706,49 @@
 
 <div id="resultsSection">
     
-    <div class="no-print" style="display:flex; gap:15px; justify-content:center; margin-bottom:20px; flex-wrap:wrap; max-width: 1000px; margin-left: auto; margin-right: auto;">
-        <button onclick="toggleMasterMenu('manage')" class="btn-ui" style="flex:1; min-width: 300px; border-color:#3b82f6; align-items:center; text-align:center;">
-            <strong style="color:#3b82f6; font-size:18px;">⚙️ MANAGE DRAW</strong>
-            <span style="font-size:13px; color:#64748b;">Add latecomers, swap pegs, fix typos, or redraw.</span>
-        </button>
-        <button onclick="toggleMasterMenu('output')" class="btn-ui" style="flex:1; min-width: 300px; background:#0f172a; border-color:#0f172a; align-items:center; text-align:center;">
-            <strong style="color:white; font-size:18px;">🖨️ OUTPUT MENU</strong>
-            <span style="color:white; opacity:0.9; font-size:13px;">Print rosters, slips, and copy Excel data.</span>
-        </button>
-    </div>
-    
     <div id="manageMenu" class="master-menu-grid no-print" style="display:none;">
         <button class="btn-ui" onclick="handleSafeEdit()" style="border-color:#10b981;">
             <strong style="color:#10b981;">✏️ AMEND NAMES</strong>
-            <span>Safely fix typos or correct mobility tags. Existing pegs are locked and safe.</span>
+            <span>Safely fix typos. Existing pegs are locked.</span>
         </button>
         <button class="btn-ui" onclick="injectLatecomer(true)" style="border-color:#10b981;">
             <strong style="color:#10b981;">➕ LATE TEAM</strong>
-            <span>Inject a 4-man team using leftover or "Alpha" pegs. Existing draw is safe.</span>
+            <span>Inject a 4-man team using Alpha pegs.</span>
         </button>
         <button class="btn-ui" onclick="injectLatecomer(false)" style="border-color:#10b981;">
             <strong style="color:#10b981;">➕ LATE SOLO</strong>
-            <span>Inject a single angler using a leftover or "Alpha" peg. Existing draw is safe.</span>
+            <span>Inject a solo angler using an Alpha peg.</span>
         </button>
         <button class="btn-ui" onclick="toggleSwapMode()" style="border-color:#8b5cf6;">
             <strong style="color:#8b5cf6;">🔄 SWAP PEGS</strong>
-            <span>Manually trade pegs between two specific anglers. No redraw triggered.</span>
+            <span>Manually trade pegs. No redraw triggered.</span>
         </button>
         <button class="btn-ui btn-danger" onclick="showRedrawModal()">
             <strong>⚠️ FULL RE-DRAW</strong>
-            <span>DANGER: Permanently wipes all current pegs and generates a completely new match from scratch.</span>
+            <span>DANGER: Wipes all current pegs. Generates fresh match.</span>
         </button>
     </div>
 
     <div id="outputMenu" class="master-menu-grid no-print" style="display:none;">
         <button class="btn-ui" id="copyExcelBtn" onclick="copyExcelData()" style="border-color:#10b981;">
             <strong style="color:#10b981;">📋 COPY EXCEL DATA</strong>
-            <span>Instantly copies your draw to the clipboard, ready to paste directly into Excel.</span>
+            <span>Instantly copies draw to clipboard for Excel.</span>
         </button>
         <button class="btn-ui" onclick="generateRegistrationSheet()" style="background:#10b981; border-color:#10b981;">
             <strong style="color:white;">PRINT REGISTRATION</strong>
-            <span style="color:white; opacity:0.9;">Generates the master attendance and pools sign-in sheet.</span>
+            <span style="color:white; opacity:0.9;">Generates master attendance sheet.</span>
         </button>
         <button class="btn-ui" onclick="generateDispatchSlips()" style="background:#0ea5e9; border-color:#0ea5e9;">
             <strong style="color:white;">TEAM SLIPS</strong>
-            <span style="color:white; opacity:0.9;">Prints individual peg details for teams and solos.</span>
+            <span style="color:white; opacity:0.9;">Prints individual peg details.</span>
         </button>
         <button class="btn-ui" onclick="printZoneRosters()" style="background:#0ea5e9; border-color:#0ea5e9;">
             <strong style="color:white;">ZONE ROSTERS</strong>
-            <span style="color:white; opacity:0.9;">Prints the ordered peg lists for your beach stewards.</span>
+            <span style="color:white; opacity:0.9;">Prints ordered lists for stewards.</span>
         </button>
         <button class="btn-ui" onclick="shareDraw()" style="background:#64748b; border-color:#64748b;">
             <strong style="color:white;">SHARE PDF</strong>
-            <span style="color:white; opacity:0.9;">Downloads a visual snapshot of the current draw screen.</span>
+            <span style="color:white; opacity:0.9;">Downloads snapshot of draw screen.</span>
         </button>
     </div>
 
@@ -782,6 +785,17 @@
 <div id="registrationPrintSection" class="no-print"></div>
 <div id="dispatchSection" class="no-print"></div>
 <div id="rosterSection" class="no-print"></div>
+
+<div id="masterActionBar" class="sticky-action-bar no-print" style="display:none;">
+    <button id="btnManageToggle" onclick="toggleMasterMenu('manage')" class="btn-master" style="border-color:#3b82f6; background:white;">
+        <strong style="color:#3b82f6;">⚙️ MANAGE DRAW</strong>
+        <span style="color:#64748b;">Add latecomers, swap pegs, fix typos</span>
+    </button>
+    <button id="btnOutputToggle" onclick="toggleMasterMenu('output')" class="btn-master" style="background:#0f172a; border-color:#0f172a;">
+        <strong style="color:white;">🖨️ OUTPUT MENU</strong>
+        <span style="color:white;">Print rosters, slips, copy Excel data</span>
+    </button>
+</div>
 
 <div id="commandBar" class="command-bar no-print">
     <div style="display:flex; gap:30px; align-items:center;">
@@ -872,31 +886,75 @@
         return 'id_' + Math.random().toString(36).substr(2, 9);
     };
 
+    function showToast(msg) {
+        const t = document.getElementById('toastBanner');
+        t.innerHTML = msg;
+        t.style.top = '20px';
+        setTimeout(() => { t.style.top = '-100px'; }, 3000);
+    }
+
     function toggleMasterMenu(menuType) {
         const mMenu = document.getElementById('manageMenu');
         const oMenu = document.getElementById('outputMenu');
-        
+        const btnM = document.getElementById('btnManageToggle');
+        const btnO = document.getElementById('btnOutputToggle');
+
+        const resetM = () => {
+            btnM.style.background = 'white';
+            btnM.style.borderColor = '#3b82f6';
+            btnM.innerHTML = `<strong style="color:#3b82f6;">⚙️ MANAGE DRAW</strong><span style="color:#64748b;">Add latecomers, swap pegs, fix typos</span>`;
+        };
+        const resetO = () => {
+            btnO.style.background = '#0f172a';
+            btnO.style.borderColor = '#0f172a';
+            btnO.innerHTML = `<strong style="color:white;">🖨️ OUTPUT MENU</strong><span style="color:white;">Print rosters, slips, copy Excel data</span>`;
+        };
+        const setClose = (btn) => {
+            btn.style.background = '#fef2f2';
+            btn.style.borderColor = '#ef4444';
+            btn.innerHTML = `<strong style="color:#ef4444;">❌ CLOSE MENU</strong><span style="color:#ef4444;">Return to active draw screen</span>`;
+        };
+
         if (menuType === 'manage') {
             if (mMenu.style.display === 'none') {
-                mMenu.style.display = 'grid';
+                mMenu.style.display = 'flex';
                 oMenu.style.display = 'none';
+                setClose(btnM);
+                resetO();
+                window.scrollTo(0,0);
             } else {
                 mMenu.style.display = 'none';
+                resetM();
             }
         } else if (menuType === 'output') {
             if (oMenu.style.display === 'none') {
-                oMenu.style.display = 'grid';
+                oMenu.style.display = 'flex';
                 mMenu.style.display = 'none';
+                setClose(btnO);
+                resetM();
+                window.scrollTo(0,0);
             } else {
                 oMenu.style.display = 'none';
+                resetO();
             }
         }
     }
 
+    function resetMasterToggles() {
+        const btnM = document.getElementById('btnManageToggle');
+        const btnO = document.getElementById('btnOutputToggle');
+        btnM.style.background = 'white';
+        btnM.style.borderColor = '#3b82f6';
+        btnM.innerHTML = `<strong style="color:#3b82f6;">⚙️ MANAGE DRAW</strong><span style="color:#64748b;">Add latecomers, swap pegs, fix typos</span>`;
+        btnO.style.background = '#0f172a';
+        btnO.style.borderColor = '#0f172a';
+        btnO.innerHTML = `<strong style="color:white;">🖨️ OUTPUT MENU</strong><span style="color:white;">Print rosters, slips, copy Excel data</span>`;
+        document.getElementById('manageMenu').style.display = 'none';
+        document.getElementById('outputMenu').style.display = 'none';
+    }
+
     function persistState() {
-        if (!isAppReady) {
-            return; 
-        }
+        if (!isAppReady) return; 
 
         const stateObj = { 
             title: document.getElementById('matchTitle').value || '',
@@ -917,11 +975,8 @@
     function formatPegs(el) {
         let val = el.value;
         let nums = val.match(/\d+/g);
-        if (nums) {
-            el.value = nums.join(', ');
-        } else {
-            el.value = '';
-        }
+        if (nums) el.value = nums.join(', ');
+        else el.value = '';
     }
 
     function toggleAccPanel() {
@@ -948,7 +1003,6 @@
 
     function setMobilityMode(m) {
         mobilityMode = m;
-        
         document.getElementById('mobModeA').classList.toggle('active', m === 'A');
         document.getElementById('mobModeB').classList.toggle('active', m === 'B');
         
@@ -959,45 +1013,30 @@
             document.getElementById('modeASetup').style.display = 'none';
             document.getElementById('modeBSetup').style.display = 'flex';
         }
-        
         checkTeamClash();
     }
 
-    function showRedrawModal() {
-        document.getElementById('redrawModal').style.display = 'flex';
-    }
-
-    function closeRedrawModal() {
-        document.getElementById('redrawModal').style.display = 'none';
-    }
-
-    function showWipeModal() { 
-        document.getElementById('wipeModal').style.display = 'flex'; 
-    }
-    
-    function closeWipeModal() { 
-        document.getElementById('wipeModal').style.display = 'none'; 
-    }
+    function showRedrawModal() { document.getElementById('redrawModal').style.display = 'flex'; }
+    function closeRedrawModal() { document.getElementById('redrawModal').style.display = 'none'; }
+    function showWipeModal() { document.getElementById('wipeModal').style.display = 'flex'; }
+    function closeWipeModal() { document.getElementById('wipeModal').style.display = 'none'; }
 
     function handleSafeEdit() {
-        document.getElementById('manageMenu').style.display = 'none';
-        document.getElementById('outputMenu').style.display = 'none';
+        resetMasterToggles();
         handleAmend(true); 
     }
 
     function executePegWipe() {
         closeRedrawModal();
-        document.getElementById('manageMenu').style.display = 'none';
+        resetMasterToggles();
         
         appState.forEach(e => {
             e.anglers.forEach(a => {
-                a.z1 = undefined; 
-                a.p1 = undefined;
-                a.z2 = undefined; 
-                a.p2 = undefined;
+                a.z1 = undefined; a.p1 = undefined;
+                a.z2 = undefined; a.p2 = undefined;
             });
         });
-        
+        currentZoneSize = 0; 
         handleAmend(false);
     }
 
@@ -1006,11 +1045,8 @@
         let txt = `REPORT: ${title}\nDATE: ${new Date().toLocaleString()}\n------------------------------\n\n`;
         
         appState.forEach(e => {
-            if (e.isTeam) {
-                txt += `TEAM: ${e.tName || "UNNAMED"}\n`;
-            } else {
-                txt += `SOLO: ${e.tName || "UNNAMED"}\n`;
-            }
+            if (e.isTeam) txt += `TEAM: ${e.tName || "UNNAMED"}\n`;
+            else txt += `SOLO: ${e.tName || "UNNAMED"}\n`;
             
             e.anglers.forEach(a => { 
                 if (a.name) {
@@ -1039,20 +1075,15 @@
 
     function setDays(d) {
         matchDays = d;
-        
         document.getElementById('dayOpt1').classList.toggle('active', d === 1);
         document.getElementById('dayOpt2').classList.toggle('active', d === 2);
         
         if (d === 2) {
             document.getElementById('day2PegsContainer').style.display = 'flex';
-            if (document.getElementById('day2AnchorContainer')) {
-                document.getElementById('day2AnchorContainer').style.display = 'flex';
-            }
+            if (document.getElementById('day2AnchorContainer')) document.getElementById('day2AnchorContainer').style.display = 'flex';
         } else {
             document.getElementById('day2PegsContainer').style.display = 'none';
-            if (document.getElementById('day2AnchorContainer')) {
-                document.getElementById('day2AnchorContainer').style.display = 'none';
-            }
+            if (document.getElementById('day2AnchorContainer')) document.getElementById('day2AnchorContainer').style.display = 'none';
         }
     }
 
@@ -1071,15 +1102,13 @@
         trashCan = null;
         applyAccToggleUI();
         
-        document.querySelectorAll('body > div[id$="Section"]').forEach(s => {
-            s.style.display = 'none';
-        });
-        
+        document.querySelectorAll('body > div[id$="Section"]').forEach(s => s.style.display = 'none');
         document.getElementById('entrySection').style.display = 'block';
         document.getElementById('setupPanel').style.display = 'block';
         document.getElementById('editDrawBanner').style.display = 'none';
         document.getElementById('initMatchBtn').style.display = 'inline-block';
         document.getElementById('commandBar').style.display = 'none';
+        document.getElementById('masterActionBar').style.display = 'none';
         document.getElementById('undoBtn').style.display = 'none';
         
         updateTicker();
@@ -1093,70 +1122,34 @@
         
         let tVal = document.getElementById('initTeams').value;
         let iVal = document.getElementById('initIndivs').value;
+        const t = parseInt(tVal) || 0; const i = parseInt(iVal) || 0;
         
-        const t = parseInt(tVal) || 0;
-        const i = parseInt(iVal) || 0;
-        
-        for(let x = 0; x < t; x++) {
-            appState.push({ 
-                id: genId(), 
-                isTeam: true, 
-                tName: '', 
-                anglers: [{},{},{},{}] 
-            });
-        }
-        
-        for(let y = 0; y < i; y++) {
-            appState.push({ 
-                id: genId(), 
-                isTeam: false, 
-                tName: '', 
-                anglers: [{}] 
-            });
-        }
+        for(let x = 0; x < t; x++) appState.push({ id: genId(), isTeam: true, tName: '', anglers: [{},{},{},{}] });
+        for(let y = 0; y < i; y++) appState.push({ id: genId(), isTeam: false, tName: '', anglers: [{}] });
         
         document.getElementById('initMatchBtn').style.display = 'none';
         document.getElementById('commandBar').style.display = 'flex';
+        document.getElementById('masterActionBar').style.display = 'none';
         document.getElementById('amendTools').style.display = 'flex'; 
         document.getElementById('actionBtnArea').style.display = 'flex';
         
         renderStateToScreen();
-
         setTimeout(() => {
             const firstInput = document.querySelector('#entryList input[type="text"]');
-            if (firstInput) { 
-                firstInput.focus(); 
-            }
+            if (firstInput) firstInput.focus(); 
         }, 50);
     }
 
     function addNewStateItem(isTeam) {
-        if (isTeam) {
-            appState.push({ 
-                id: genId(), 
-                isTeam: true, 
-                tName: '', 
-                anglers: [{},{},{},{}] 
-            });
-        } else {
-            appState.push({ 
-                id: genId(), 
-                isTeam: false, 
-                tName: '', 
-                anglers: [{}] 
-            });
-        }
+        if (isTeam) appState.push({ id: genId(), isTeam: true, tName: '', anglers: [{},{},{},{}] });
+        else appState.push({ id: genId(), isTeam: false, tName: '', anglers: [{}] });
         renderStateToScreen();
     }
 
     function toggleMobility(eId, aIdx) {
         const entry = appState.find(e => e.id === eId);
         if (entry) { 
-            if (entry.anglers[aIdx].mobility) {
-                entry.anglers[aIdx].mobility = 0;
-            } else {
-                entry.anglers[aIdx].mobility = 1;
-            }
+            entry.anglers[aIdx].mobility = entry.anglers[aIdx].mobility ? 0 : 1;
             renderStateToScreen(); 
         }
     }
@@ -1166,18 +1159,14 @@
         if (entry) { 
             let currentState = entry.anglers[aIdx].captain;
             entry.anglers.forEach(a => a.captain = 0);
-            if (!currentState) {
-                entry.anglers[aIdx].captain = 1;
-            }
+            if (!currentState) entry.anglers[aIdx].captain = 1;
             renderStateToScreen(); 
         }
     }
 
     function updateTeamName(id, val) {
         let entry = appState.find(e => e.id === id);
-        if (entry) { 
-            entry.tName = val.trim().toUpperCase(); 
-        }
+        if (entry) entry.tName = val.trim().toUpperCase(); 
     }
 
     function updateAnglerName(id, aIdx, val) {
@@ -1189,10 +1178,7 @@
     }
 
     function updateDrawButtons() {
-        const hasDraw = appState.some(e => {
-            return e.anglers.some(a => a.z1);
-        });
-        
+        const hasDraw = appState.some(e => e.anglers.some(a => a.z1));
         const viewCont = document.getElementById('viewDrawContainer');
         const processCont = document.getElementById('processDrawContainer');
         
@@ -1206,35 +1192,20 @@
     }
 
     function renderStateToScreen() {
-        const tb = document.getElementById('entryTeamsBucket'); 
-        tb.innerHTML = '';
-        
-        const sb = document.getElementById('entrySolosBucket'); 
-        sb.innerHTML = '';
+        const tb = document.getElementById('entryTeamsBucket'); tb.innerHTML = '';
+        const sb = document.getElementById('entrySolosBucket'); sb.innerHTML = '';
         
         appState.forEach(entry => {
             const div = document.createElement('div');
-            
-            if (!entry.isTeam) {
-                div.className = 'zone-card solo-card';
-            } else {
-                div.className = 'zone-card';
-            }
-            
+            div.className = !entry.isTeam ? 'zone-card solo-card' : 'zone-card';
             div.dataset.id = entry.id;
             
             let typeStr = entry.isTeam ? 'TEAM' : 'SOLO';
             let h = `<div class="zone-header"><span>${typeStr}</span><div style="display:flex; align-items:center;">`;
             
-            if (!entry.isTeam) { 
-                h += `<input type="checkbox" class="merge-cb" onchange="checkMerge()" tabindex="-1" style="width:20px; height:20px;">`; 
-            }
-            
-            if (entry.isTeam) { 
-                h += `<button class="btn-tool" onclick="breakStateTeam('${entry.id}')" tabindex="-1" style="margin-left:12px;">🔗 UNLINK</button>`; 
-            } else { 
-                h += `<button onclick="deleteStateEntry('${entry.id}')" tabindex="-1" style="background:none; border:none; color:#ef4444; font-weight:900; font-size:24px; cursor:pointer; margin-left:12px;">×</button>`; 
-            }
+            if (!entry.isTeam) h += `<input type="checkbox" class="merge-cb" onchange="checkMerge()" tabindex="-1" style="width:20px; height:20px;">`; 
+            if (entry.isTeam) h += `<button class="btn-tool" onclick="breakStateTeam('${entry.id}')" tabindex="-1" style="margin-left:12px;">🔗 UNLINK</button>`; 
+            else h += `<button onclick="deleteStateEntry('${entry.id}')" tabindex="-1" style="background:none; border:none; color:#ef4444; font-weight:900; font-size:24px; cursor:pointer; margin-left:12px;">×</button>`; 
             
             h += `</div></div>`;
             
@@ -1245,10 +1216,8 @@
                 for (let i = 0; i < 4; i++) {
                     let mBg = entry.anglers[i].mobility ? 'var(--a-color)' : 'white';
                     let mColor = entry.anglers[i].mobility ? 'white' : 'var(--text)';
-
                     let cBg = entry.anglers[i].captain ? 'var(--c-color)' : 'white';
                     let cColor = entry.anglers[i].captain ? 'white' : 'var(--text)';
-                    
                     let aName = entry.anglers[i].name || '';
                     
                     h += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
@@ -1259,10 +1228,8 @@
                 }
             } else {
                 h += `<label style="font-size:10px; opacity:0.6;">SOLO NAME</label>`;
-                
                 let mBg = entry.anglers[0].mobility ? 'var(--a-color)' : 'white';
                 let mColor = entry.anglers[0].mobility ? 'white' : 'var(--text)';
-                
                 let aName = entry.anglers[0].name || '';
                 
                 h += `<div style="display:flex; align-items:center; gap:8px; margin-top:5px;">
@@ -1272,31 +1239,13 @@
             }
             
             div.innerHTML = h; 
-            
-            if (entry.isTeam) {
-                tb.appendChild(div);
-            } else {
-                sb.appendChild(div);
-            }
+            if (entry.isTeam) tb.appendChild(div); else sb.appendChild(div);
         });
         
-        if (tb.innerHTML !== '') {
-            document.getElementById('entryTeamsContainer').style.display = 'block';
-        } else {
-            document.getElementById('entryTeamsContainer').style.display = 'none';
-        }
+        document.getElementById('entryTeamsContainer').style.display = tb.innerHTML !== '' ? 'block' : 'none';
+        document.getElementById('entrySolosContainer').style.display = sb.innerHTML !== '' ? 'block' : 'none';
         
-        if (sb.innerHTML !== '') {
-            document.getElementById('entrySolosContainer').style.display = 'block';
-        } else {
-            document.getElementById('entrySolosContainer').style.display = 'none';
-        }
-        
-        updateTicker(); 
-        checkMerge(); 
-        checkTeamClash(); 
-        updateDrawButtons();
-        persistState();
+        updateTicker(); checkMerge(); checkTeamClash(); updateDrawButtons(); persistState();
     }
 
     function deleteStateEntry(id) { 
@@ -1314,18 +1263,10 @@
         if (idx > -1) { 
             const t = appState.splice(idx, 1)[0]; 
             let nIds = [];
-            
             t.anglers.forEach(a => { 
-                let nId = genId();
-                nIds.push(nId);
-                appState.push({ 
-                    id: nId, 
-                    isTeam: false, 
-                    tName: '', 
-                    anglers: [{...a}] 
-                }); 
+                let nId = genId(); nIds.push(nId);
+                appState.push({ id: nId, isTeam: false, tName: '', anglers: [{...a}] }); 
             }); 
-            
             trashCan = { action: 'break', originalTeam: t, index: idx, newIds: nIds };
             document.getElementById('undoBtn').style.display = 'inline-block';
             renderStateToScreen(); 
@@ -1334,14 +1275,12 @@
 
     function undoLastAction() {
         if (!trashCan) return;
-
         if (trashCan.action === 'delete') {
             appState.splice(trashCan.index, 0, trashCan.data);
         } else if (trashCan.action === 'break') {
             appState = appState.filter(e => !trashCan.newIds.includes(e.id));
             appState.splice(trashCan.index, 0, trashCan.originalTeam);
         }
-
         trashCan = null;
         document.getElementById('undoBtn').style.display = 'none';
         renderStateToScreen();
@@ -1349,17 +1288,9 @@
     
     function mergeSelected() { 
         const sel = document.querySelectorAll('.merge-cb:checked'); 
-        
-        if (sel.length !== 4) {
-            return; 
-        }
-        
-        const ids = Array.from(sel).map(cb => {
-            return cb.closest('.zone-card').dataset.id;
-        }); 
-        
+        if (sel.length !== 4) return; 
+        const ids = Array.from(sel).map(cb => cb.closest('.zone-card').dataset.id); 
         const angs = []; 
-        
         ids.forEach(id => { 
             const idx = appState.findIndex(e => e.id === id); 
             if (idx > -1) {
@@ -1367,109 +1298,60 @@
                 angs.push(removed.anglers[0]); 
             }
         }); 
-        
-        appState.push({ 
-            id: genId(), 
-            isTeam: true, 
-            tName: '', 
-            anglers: angs 
-        }); 
-        
+        appState.push({ id: genId(), isTeam: true, tName: '', anglers: angs }); 
         renderStateToScreen(); 
     }
     
     function checkMerge() { 
         let checkedBoxes = document.querySelectorAll('.merge-cb:checked');
-        if (checkedBoxes.length === 4) {
-            document.getElementById('mergeBtn').style.display = 'inline-block';
-        } else {
-            document.getElementById('mergeBtn').style.display = 'none';
-        }
+        document.getElementById('mergeBtn').style.display = checkedBoxes.length === 4 ? 'inline-block' : 'none';
     }
     
     function checkTeamClash() {
         let clash = false; 
-        
         if (mobilityMode === 'B') {
             appState.forEach(e => { 
                 if (e.isTeam) {
                     let mobCount = e.anglers.filter(a => a.mobility).length;
-                    if (mobCount > 1) {
-                        clash = true;
-                    }
+                    if (mobCount > 1) clash = true;
                 } 
             }); 
         }
-        
-        if (clash) {
-            document.getElementById('teamClashWarning').style.display = 'block';
-            document.getElementById('mainActionBtn').disabled = true;
-        } else {
-            document.getElementById('teamClashWarning').style.display = 'none';
-            document.getElementById('mainActionBtn').disabled = false;
-        }
+        document.getElementById('teamClashWarning').style.display = clash ? 'block' : 'none';
+        document.getElementById('mainActionBtn').disabled = clash ? true : false;
     }
     
     function updateTicker() { 
         let ent = 0; 
-        
-        appState.forEach(e => {
-            e.anglers.forEach(a => { 
-                if (a.name && a.name.trim() !== '') {
-                    ent++; 
-                }
-            });
-        });
-        
+        appState.forEach(e => { e.anglers.forEach(a => { if (a.name && a.name.trim() !== '') ent++; }); });
         document.getElementById('tkAnglers').innerText = ent; 
     }
 
     function initiateShuffle() {
         let filteredState = [];
-        
         appState.forEach(e => {
             if (e.isTeam) {
                 let hasNames = e.anglers.some(a => (a.name || '').trim() !== '');
                 let hasTeamName = (e.tName || '').trim() !== '';
-                if (hasNames || hasTeamName) {
-                    filteredState.push(e);
-                }
+                if (hasNames || hasTeamName) filteredState.push(e);
             } else {
-                let hasName = (e.anglers[0].name || '').trim() !== '';
-                if (hasName) {
-                    filteredState.push(e);
-                }
+                if ((e.anglers[0].name || '').trim() !== '') filteredState.push(e);
             }
         });
         
         appState = filteredState;
-        
-        appState.forEach(e => {
-            e.anglers.forEach(a => { 
-                a.z1 = undefined; 
-                a.p1 = undefined; 
-                a.z2 = undefined; 
-                a.p2 = undefined; 
-            });
-        });
+        appState.forEach(e => { e.anglers.forEach(a => { a.z1 = undefined; a.p1 = undefined; a.z2 = undefined; a.p2 = undefined; }); });
         
         renderStateToScreen();
         
         const over = document.getElementById('shuffleOverlay'); 
         const pBar = document.getElementById('pBar');
-        
         over.style.display = 'flex'; 
         let p = 0;
         
         const inv = setInterval(() => { 
-            p += 5; 
-            pBar.style.width = p + '%'; 
-            
-            if (p >= 100) { 
-                clearInterval(inv); 
-                over.style.display = 'none'; 
-                runDraw(); 
-            } 
+            p += 5; pBar.style.width = p + '%'; 
+            if (p >= 100) { clearInterval(inv); over.style.display = 'none'; runDraw(); } 
         }, 30);
     }
 
@@ -1488,7 +1370,6 @@
     }
 
     function runDraw() {
-        
         appState.sort((a, b) => {
             let getPriority = (entry) => { 
                 let hasA = accEnabled && entry.anglers.some(ang => ang.mobility); 
@@ -1502,81 +1383,53 @@
 
         let s1A_str = document.getElementById('accPegs1_a').value || '';
         let s2A_str = document.getElementById('accPegs2_a').value || '';
-        
         let s1A = s1A_str.match(/\d+/g) ? s1A_str.match(/\d+/g).map(Number) : [];
         let s2A = s2A_str.match(/\d+/g) ? s2A_str.match(/\d+/g).map(Number) : [];
-        
         const ancZ1 = document.getElementById('anchorZoneSelect').value;
         const ancZ2 = document.getElementById('anchorZoneSelect2').value;
         
-        let tot = 0; 
-        appState.forEach(e => {
-            if (e.isTeam) tot += 4;
-            else tot += 1;
-        });
+        // Calculate and LOCK zone size only if it's a fresh initial draw
+        if (currentZoneSize === 0) {
+            let tot = 0; 
+            appState.forEach(e => { if (e.isTeam) tot += 4; else tot += 1; });
+            currentZoneSize = Math.max(Math.ceil(tot / 4), 1); 
+        }
         
-        let zSize = Math.max(Math.ceil(tot / 4), 1); 
-        currentZoneSize = zSize;
+        let zSize = currentZoneSize;
         
         let p1 = zones.map((z, idx) => { 
-            let p = []; 
-            for (let i = 1; i <= zSize; i++) {
-                p.push((idx * zSize) + i);
-            }
-            p.sort(() => Math.random() - 0.5); 
-            return {z, p}; 
+            let p = []; for (let i = 1; i <= zSize; i++) p.push((idx * zSize) + i);
+            p.sort(() => Math.random() - 0.5); return {z, p}; 
         });
         
         let p2 = zones.map((z, idx) => { 
-            let p = []; 
-            for (let i = 1; i <= zSize; i++) {
-                p.push((idx * zSize) + i);
-            }
-            p.sort(() => Math.random() - 0.5); 
-            return {z, p}; 
+            let p = []; for (let i = 1; i <= zSize; i++) p.push((idx * zSize) + i);
+            p.sort(() => Math.random() - 0.5); return {z, p}; 
         });
 
         let aEntries = [];
         if (accEnabled) {
-            appState.forEach(e => {
-                if (e.anglers.some(a => a.mobility)) {
-                    aEntries.push(e);
-                }
-            });
+            appState.forEach(e => { if (e.anglers.some(a => a.mobility)) aEntries.push(e); });
         }
 
         if (accEnabled && mobilityMode === 'A' && aEntries.length > 0) {
-            let availableD1Safe = [];
-            let availableD2Safe = [];
-            
+            let availableD1Safe = []; let availableD2Safe = [];
             zones.forEach(z => {
-                let zI = zones.indexOf(z);
-                let safeCount = 0;
-                p1[zI].p.forEach(pegNum => {
-                    if (s1A.includes(pegNum)) safeCount++;
-                });
+                let zI = zones.indexOf(z); let safeCount = 0;
+                p1[zI].p.forEach(pegNum => { if (s1A.includes(pegNum)) safeCount++; });
                 for (let i = 0; i < safeCount; i++) availableD1Safe.push(z);
             });
-            
             zones.forEach(z => {
-                let zI = zones.indexOf(z);
-                let safeCount = 0;
-                p2[zI].p.forEach(pegNum => {
-                    if (s2A.includes(pegNum)) safeCount++;
-                });
+                let zI = zones.indexOf(z); let safeCount = 0;
+                p2[zI].p.forEach(pegNum => { if (s2A.includes(pegNum)) safeCount++; });
                 for (let i = 0; i < safeCount; i++) availableD2Safe.push(z);
             });
 
-            let bestPairing = [];
-            let leastClashes = 999;
-            
+            let bestPairing = []; let leastClashes = 999;
             for (let attempt = 0; attempt < 100; attempt++) {
                 let tempD1 = [...availableD1Safe].sort(() => Math.random() - 0.5);
                 let tempD2 = [...availableD2Safe].sort(() => Math.random() - 0.5);
-                
-                let clashes = 0;
-                let currentPairs = [];
-                
+                let clashes = 0; let currentPairs = [];
                 for (let i = 0; i < aEntries.length; i++) {
                     let z1 = null, z2 = null;
                     if (i < tempD1.length) z1 = tempD1[i];
@@ -1584,25 +1437,20 @@
                     if (z1 !== null && z2 !== null && z1 === z2) clashes++;
                     currentPairs.push({z1: z1, z2: z2});
                 }
-                
                 if (clashes < leastClashes) {
-                    leastClashes = clashes;
-                    bestPairing = currentPairs;
+                    leastClashes = clashes; bestPairing = currentPairs;
                     if (leastClashes === 0) break; 
                 }
             }
 
             aEntries.forEach((e, idx) => {
                 let a = e.anglers.find(ang => ang.mobility);
-                a.preZ1 = bestPairing[idx].z1;
-                a.preZ2 = bestPairing[idx].z2;
+                a.preZ1 = bestPairing[idx].z1; a.preZ2 = bestPairing[idx].z2;
             });
         }
         
         const pull = (z, d2, mob) => {
-            const pools = d2 ? p2 : p1; 
-            const zI = zones.indexOf(z);
-            
+            const pools = d2 ? p2 : p1; const zI = zones.indexOf(z);
             if (accEnabled && mobilityMode === 'A') {
                 const sL = d2 ? s2A : s1A;
                 if (mob) { 
@@ -1613,72 +1461,48 @@
                     if (nI > -1) return pools[zI].p.splice(nI, 1)[0]; 
                 }
             }
-            
             let popVal = pools[zI].p.pop();
-            if (popVal !== undefined) return popVal;
-            return 9999;
+            return popVal !== undefined ? popVal : 9999;
         };
         
         appState.forEach(e => {
             if (e.isTeam) {
                 let hasA = false;
-                if (accEnabled) {
-                    e.anglers.forEach(a => { if (a.mobility) hasA = true; });
-                }
+                if (accEnabled) { e.anglers.forEach(a => { if (a.mobility) hasA = true; }); }
                 
                 if (accEnabled && mobilityMode === 'B' && hasA) {
-                    let d1Z = [null, null, null, null];
-                    let d2Z = [null, null, null, null]; 
+                    let d1Z = [null, null, null, null]; let d2Z = [null, null, null, null]; 
+                    e.anglers.forEach((a, i) => { if (a.mobility) { d1Z[i] = ancZ1; d2Z[i] = ancZ2; } });
                     
-                    e.anglers.forEach((a, i) => { 
-                        if (a.mobility) { d1Z[i] = ancZ1; d2Z[i] = ancZ2; } 
-                    });
-                    
-                    let av1 = [];
-                    zones.forEach(z => { if (z !== ancZ1) av1.push(z); });
+                    let av1 = []; zones.forEach(z => { if (z !== ancZ1) av1.push(z); });
                     av1.sort(() => Math.random() - 0.5);
-                    
-                    let sI = [];
-                    e.anglers.forEach((a, i) => { if (!a.mobility) sI.push(i); });
-                    
+                    let sI = []; e.anglers.forEach((a, i) => { if (!a.mobility) sI.push(i); });
                     d1Z[sI[0]] = av1[0]; d1Z[sI[1]] = av1[1]; d1Z[sI[2]] = av1[2];
                     
-                    let av2 = [];
-                    zones.forEach(z => { if (z !== ancZ2) av2.push(z); });
+                    let av2 = []; zones.forEach(z => { if (z !== ancZ2) av2.push(z); });
                     let bestD2Perm = [...av2];
-                    
                     for (let attempt = 0; attempt < 20; attempt++) {
                         av2.sort(() => Math.random() - 0.5);
                         let isValid = true;
-                        for (let k = 0; k < 3; k++) {
-                            if (d1Z[sI[k]] === av2[k]) isValid = false;
-                        }
+                        for (let k = 0; k < 3; k++) { if (d1Z[sI[k]] === av2[k]) isValid = false; }
                         if (isValid) { bestD2Perm = [...av2]; break; }
                     }
-                    
                     d2Z[sI[0]] = bestD2Perm[0]; d2Z[sI[1]] = bestD2Perm[1]; d2Z[sI[2]] = bestD2Perm[2];
                     
                     e.anglers.forEach((a, i) => { 
                         a.z1 = d1Z[i]; a.p1 = pull(a.z1, 0, a.mobility); 
                         a.z2 = d2Z[i]; a.p2 = pull(a.z2, 1, a.mobility); 
                     });
-                    
                 } else if (accEnabled && mobilityMode === 'A' && hasA) {
-                    let mI = e.anglers.findIndex(a => a.mobility); 
-                    let a = e.anglers[mI];
-                    let targetZ1 = a.preZ1;
-                    let targetZ2 = a.preZ2;
-                    
+                    let mI = e.anglers.findIndex(a => a.mobility); let a = e.anglers[mI];
+                    let targetZ1 = a.preZ1; let targetZ2 = a.preZ2;
                     if (!targetZ1) targetZ1 = [...zones].sort(() => Math.random() - 0.5)[0];
                     if (!targetZ2) {
-                        let randZones = [];
-                        zones.forEach(z => { if (z !== targetZ1) randZones.push(z); });
+                        let randZones = []; zones.forEach(z => { if (z !== targetZ1) randZones.push(z); });
                         randZones.sort(() => Math.random() - 0.5);
                         targetZ2 = randZones.length > 0 ? randZones[0] : targetZ1;
                     }
-
-                    let d1Z = [null, null, null, null];
-                    let d2Z = [null, null, null, null];
+                    let d1Z = [null, null, null, null]; let d2Z = [null, null, null, null];
                     d1Z[mI] = targetZ1; d2Z[mI] = targetZ2;
                     
                     let remainingD1 = []; zones.forEach(z => { if (z !== targetZ1) remainingD1.push(z); });
@@ -1689,9 +1513,7 @@
                     for (let attempt = 0; attempt < 20; attempt++) {
                         remainingD2.sort(() => Math.random() - 0.5);
                         let isValid = true;
-                        for (let i = 0; i < 3; i++) {
-                            if (remainingD1[i] === remainingD2[i]) isValid = false;
-                        }
+                        for (let i = 0; i < 3; i++) { if (remainingD1[i] === remainingD2[i]) isValid = false; }
                         if (isValid) { bestD2Perm = [...remainingD2]; break; }
                     }
                     remainingD2 = bestD2Perm;
@@ -1700,7 +1522,6 @@
                     for (let i = 0; i < 4; i++) {
                         if (i !== mI) { d1Z[i] = remainingD1[rIdx]; d2Z[i] = remainingD2[rIdx]; rIdx++; }
                     }
-                    
                     e.anglers.forEach((ang, i) => { 
                         ang.z1 = d1Z[i]; ang.p1 = pull(ang.z1, 0, ang.mobility); 
                         ang.z2 = d2Z[i]; ang.p2 = pull(ang.z2, 1, ang.mobility); 
@@ -1714,15 +1535,11 @@
                     });
                 }
             } else {
-                let a = e.anglers[0]; 
-                let hasMobility = accEnabled && a.mobility;
-                
+                let a = e.anglers[0]; let hasMobility = accEnabled && a.mobility;
                 if (accEnabled && mobilityMode === 'B' && hasMobility) { 
                     a.z1 = ancZ1; a.z2 = ancZ2; 
                 } else if (accEnabled && mobilityMode === 'A' && hasMobility) {
-                    if (a.preZ1) a.z1 = a.preZ1;
-                    else a.z1 = zones[Math.floor(Math.random() * zones.length)];
-                    
+                    if (a.preZ1) a.z1 = a.preZ1; else a.z1 = zones[Math.floor(Math.random() * zones.length)];
                     if (a.preZ2) a.z2 = a.preZ2;
                     else {
                         let av2 = []; zones.forEach(z => { if (z !== a.z1) av2.push(z); });
@@ -1731,22 +1548,19 @@
                 } else { 
                     let av = []; zones.forEach(z => { if (p1[zones.indexOf(z)].p.length > 0) av.push(z); });
                     if (av.length > 0) a.z1 = av[Math.floor(Math.random() * av.length)]; 
-                    
                     let av2 = []; zones.forEach(z => { if (z !== a.z1 && p2[zones.indexOf(z)].p.length > 0) av2.push(z); });
                     if (av2.length === 0) zones.forEach(z => { if (p2[zones.indexOf(z)].p.length > 0) av2.push(z); });
                     if (av2.length > 0) a.z2 = av2[Math.floor(Math.random() * av2.length)]; 
                 }
-                
-                a.p1 = pull(a.z1, 0, hasMobility); 
-                a.p2 = pull(a.z2, 1, hasMobility);
+                a.p1 = pull(a.z1, 0, hasMobility); a.p2 = pull(a.z2, 1, hasMobility);
             }
         });
         displayDraw();
     }
 
     function toggleSwapMode() { 
-        document.getElementById('manageMenu').style.display = 'none';
-        if (isSwapMode) isSwapMode = false; else isSwapMode = true;
+        resetMasterToggles();
+        isSwapMode = !isSwapMode;
         swapObj1 = null; 
         document.getElementById('swapPrompt').style.display = isSwapMode ? 'block' : 'none';
         displayDraw(); 
@@ -1754,7 +1568,6 @@
 
     function handleSwapClick(eId, aI, day) { 
         if (!isSwapMode) return; 
-        
         if (!swapObj1) { 
             swapObj1 = { eId: eId, aI: aI, day: day }; 
             displayDraw(); 
@@ -1781,10 +1594,8 @@
     }
 
     function runValidator() {
-        let errors = [];
-        let clashMap = [];
-        let pM1 = { RED:[], YELLOW:[], GREEN:[], BLUE:[] };
-        let pM2 = { RED:[], YELLOW:[], GREEN:[], BLUE:[] };
+        let errors = []; let clashMap = [];
+        let pM1 = { RED:[], YELLOW:[], GREEN:[], BLUE:[] }; let pM2 = { RED:[], YELLOW:[], GREEN:[], BLUE:[] };
 
         appState.forEach(team => {
             let tN = team.tName || 'SOLO';
@@ -1846,13 +1657,12 @@
             });
         });
         
-        let uniqueErrors = [];
-        errors.forEach(e => { if (!uniqueErrors.includes(e)) uniqueErrors.push(e); });
+        let uniqueErrors = []; errors.forEach(e => { if (!uniqueErrors.includes(e)) uniqueErrors.push(e); });
         return { list: uniqueErrors, markers: clashMap };
     }
 
     function injectLatecomer(isTeam) {
-        document.getElementById('manageMenu').style.display = 'none';
+        resetMasterToggles();
         let used1 = { 'RED':[], 'YELLOW':[], 'GREEN':[], 'BLUE':[] };
         let used2 = { 'RED':[], 'YELLOW':[], 'GREEN':[], 'BLUE':[] };
         
@@ -1882,58 +1692,40 @@
             
             for(let i=0; i<4; i++) {
                 let p1_val;
-                if(avail1[d1Z[i]].length > 0) {
-                    p1_val = avail1[d1Z[i]].splice(Math.floor(Math.random() * avail1[d1Z[i]].length), 1)[0];
-                } else {
-                    p1_val = getAlphaPeg(d1Z[i], 1, used1);
-                }
+                if(avail1[d1Z[i]].length > 0) p1_val = avail1[d1Z[i]].splice(Math.floor(Math.random() * avail1[d1Z[i]].length), 1)[0];
+                else p1_val = getAlphaPeg(d1Z[i], 1, used1);
                 
                 let p2_val = undefined;
                 if(matchDays === 2) {
-                    if(avail2[d2Z[i]].length > 0) {
-                        p2_val = avail2[d2Z[i]].splice(Math.floor(Math.random() * avail2[d2Z[i]].length), 1)[0];
-                    } else {
-                        p2_val = getAlphaPeg(d2Z[i], 2, used2);
-                    }
+                    if(avail2[d2Z[i]].length > 0) p2_val = avail2[d2Z[i]].splice(Math.floor(Math.random() * avail2[d2Z[i]].length), 1)[0];
+                    else p2_val = getAlphaPeg(d2Z[i], 2, used2);
                 }
                 newEntry.anglers.push({ name: '', z1: d1Z[i], p1: p1_val, z2: matchDays === 2 ? d2Z[i] : undefined, p2: p2_val });
             }
         } else {
-            let flat1 = [];
-            zones.forEach(z => { if(avail1[z].length > 0) flat1.push(z); });
+            let flat1 = []; zones.forEach(z => { if(avail1[z].length > 0) flat1.push(z); });
             let picked1Z = flat1.length > 0 ? flat1[Math.floor(Math.random() * flat1.length)] : zones[Math.floor(Math.random() * zones.length)];
             
             let p1_val;
-            if(avail1[picked1Z].length > 0) {
-                p1_val = avail1[picked1Z].splice(Math.floor(Math.random() * avail1[picked1Z].length), 1)[0];
-            } else {
-                p1_val = getAlphaPeg(picked1Z, 1, used1);
-            }
+            if(avail1[picked1Z].length > 0) p1_val = avail1[picked1Z].splice(Math.floor(Math.random() * avail1[picked1Z].length), 1)[0];
+            else p1_val = getAlphaPeg(picked1Z, 1, used1);
             
             let picked2Z = undefined, p2_val = undefined;
             if(matchDays === 2) {
-                let flat2 = [];
-                zones.forEach(z => { if(z !== picked1Z && avail2[z].length > 0) flat2.push(z); });
+                let flat2 = []; zones.forEach(z => { if(z !== picked1Z && avail2[z].length > 0) flat2.push(z); });
                 if(flat2.length === 0) zones.forEach(z => { if(z !== picked1Z) flat2.push(z); });
-                
                 picked2Z = flat2.length > 0 ? flat2[Math.floor(Math.random() * flat2.length)] : zones[Math.floor(Math.random() * zones.length)];
                 
-                if(avail2[picked2Z] && avail2[picked2Z].length > 0) {
-                    p2_val = avail2[picked2Z].splice(Math.floor(Math.random() * avail2[picked2Z].length), 1)[0];
-                } else {
-                    p2_val = getAlphaPeg(picked2Z, 2, used2);
-                }
+                if(avail2[picked2Z] && avail2[picked2Z].length > 0) p2_val = avail2[picked2Z].splice(Math.floor(Math.random() * avail2[picked2Z].length), 1)[0];
+                else p2_val = getAlphaPeg(picked2Z, 2, used2);
             }
             newEntry.anglers.push({ name: '', z1: picked1Z, p1: p1_val, z2: matchDays === 2 ? picked2Z : undefined, p2: p2_val });
         }
         
         appState.push(newEntry);
         displayDraw();
-        
-        setTimeout(() => {
-            handleSafeEdit();
-            alert("Latecomer module successfully injected. Please fill in their names.");
-        }, 50); 
+        showToast("✅ LATECOMER ADDED SUCCESSFULLY");
+        setTimeout(() => { handleAmend(true); }, 800); 
     }
 
     function isPegSafe(p, d) { 
@@ -1947,25 +1739,18 @@
     }
 
     function copyExcelData() {
-        document.getElementById('outputMenu').style.display = 'none';
+        resetMasterToggles();
         let tsv = matchDays === 2 ? "NAME\tTEAM\tDAY 1 ZONE\tDAY 2 ZONE\n" : "NAME\tTEAM\tDAY 1 ZONE\n";
-        
         appState.forEach(g => { 
             g.anglers.forEach(a => { 
                 let tName = g.isTeam ? (g.tName || '') : '';
-                if (matchDays === 2) {
-                    tsv += `${a.name || ''}\t${tName}\t${a.z1}\t${a.z2}\n`; 
-                } else {
-                    tsv += `${a.name || ''}\t${tName}\t${a.z1}\n`;
-                }
+                if (matchDays === 2) tsv += `${a.name || ''}\t${tName}\t${a.z1}\t${a.z2}\n`; 
+                else tsv += `${a.name || ''}\t${tName}\t${a.z1}\n`;
             }); 
         });
 
         navigator.clipboard.writeText(tsv).then(() => {
-            const btn = document.getElementById('copyExcelBtn');
-            const original = btn.innerHTML;
-            btn.innerHTML = `<strong style="color:#10b981;">📋 COPIED!</strong><span>Data ready to paste.</span>`;
-            setTimeout(() => btn.innerHTML = original, 2000);
+            showToast("📋 DATA COPIED TO CLIPBOARD");
         });
     }
 
@@ -1976,16 +1761,40 @@
         let titleVal = document.getElementById('matchTitle').value;
         document.getElementById('resTitle').innerText = titleVal ? titleVal : "DRAW";
         document.getElementById('commandBar').style.display = 'none';
+        document.getElementById('masterActionBar').style.display = 'flex';
 
-        let totAnglers = 0;
-        appState.forEach(e => { if (e.isTeam) totAnglers += 4; else totAnglers += 1; });
-        currentZoneSize = Math.max(Math.ceil(totAnglers / 4), 1);
+        // Fallback safely if currentZoneSize was never set
+        if (currentZoneSize === 0) {
+            let totAnglers = 0;
+            appState.forEach(e => { if (e.isTeam) totAnglers += 4; else totAnglers += 1; });
+            currentZoneSize = Math.max(Math.ceil(totAnglers / 4), 1);
+        }
         const s = currentZoneSize;
 
-        document.getElementById('keyRed').innerText = `RED (1-${s})`;
-        document.getElementById('keyYellow').innerText = `YELLOW (${s+1}-${s*2})`;
-        document.getElementById('keyGreen').innerText = `GREEN (${(s*2)+1}-${s*3})`;
-        document.getElementById('keyBlue').innerText = `BLUE (${(s*3)+1}-${s*4})`;
+        // Dynamic Legend Math
+        zones.forEach((z, idx) => {
+            let baseMax = (idx + 1) * s;
+            let baseMin = (idx * s) + 1;
+            let highestAlpha = '';
+            
+            appState.forEach(e => e.anglers.forEach(a => {
+                [ {z: a.z1, p: a.p1}, {z: a.z2, p: a.p2} ].forEach(zp => {
+                    if (zp.z === z && zp.p !== undefined && zp.p !== 9999) {
+                        let pStr = String(zp.p);
+                        if (pStr.startsWith(String(baseMax))) {
+                            let alpha = pStr.replace(/[0-9]/g, '');
+                            if (alpha > highestAlpha) highestAlpha = alpha;
+                        }
+                    }
+                });
+            }));
+            
+            let headerText = `${z} (${baseMin}-${baseMax}${highestAlpha})`;
+            if (z === 'RED') document.getElementById('keyRed').innerText = headerText;
+            if (z === 'YELLOW') document.getElementById('keyYellow').innerText = headerText;
+            if (z === 'GREEN') document.getElementById('keyGreen').innerText = headerText;
+            if (z === 'BLUE') document.getElementById('keyBlue').innerText = headerText;
+        });
 
         const validation = runValidator(); 
         const banner = document.getElementById('anomalyBanner'); 
@@ -2000,8 +1809,7 @@
         const sb = document.getElementById('solosBucket'); sb.innerHTML = '';
         
         appState.forEach(g => {
-            const div = document.createElement('div'); 
-            div.className = 'zone-card';
+            const div = document.createElement('div'); div.className = 'zone-card';
             let fZ = g.anglers[0] && g.anglers[0].z1 ? g.anglers[0].z1 : null;
             div.style.borderTopColor = fZ && zColors[fZ] ? zColors[fZ] : 'black';
             let bgSoft = fZ && zSofts[fZ] ? zSofts[fZ] : '#f1f5f9';
@@ -2023,8 +1831,7 @@
                 let aTag = (accEnabled && a.mobility) ? ' <span class="a-tag">[A]</span>' : '';
                 let cTag = a.captain ? ' <span class="c-tag">[C]</span>' : '';
                 
-                let d1Bg = zColors[a.z1] || 'gray';
-                let d2Bg = zColors[a.z2] || 'gray';
+                let d1Bg = zColors[a.z1] || 'gray'; let d2Bg = zColors[a.z2] || 'gray';
                 let d1SafeTag = isPegSafe(a.p1, 1) ? '<br><small>[A]</small>' : '';
                 let d2SafeTag = isPegSafe(a.p2, 2) ? '<br><small>[A]</small>' : '';
                 
@@ -2045,7 +1852,6 @@
         document.getElementById('teamsBucketContainer').style.display = tb.innerHTML !== '' ? 'block' : 'none';
         document.getElementById('solosBucketContainer').style.display = sb.innerHTML !== '' ? 'block' : 'none';
         
-        window.scrollTo(0,0);
         persistState();
     }
 
@@ -2053,6 +1859,7 @@
         document.querySelectorAll('body > div[id$="Section"]').forEach(s => s.style.display = 'none');
         document.getElementById('entrySection').style.display = 'block'; 
         document.getElementById('commandBar').style.display = 'flex'; 
+        document.getElementById('masterActionBar').style.display = 'none';
         
         if (appState.length > 0) { 
             document.getElementById('initMatchBtn').style.display = 'none'; 
@@ -2066,7 +1873,6 @@
             document.getElementById('editDrawBanner').style.display = 'block';
             document.getElementById('accToggleBtn').style.display = 'none';
             document.getElementById('accPanelWrapper').style.display = 'none';
-            
             document.getElementById('addAmendTeamBtn').style.display = 'none';
             document.getElementById('addAmendSoloBtn').style.display = 'none';
         } else {
@@ -2074,7 +1880,6 @@
             document.getElementById('editDrawBanner').style.display = 'none';
             document.getElementById('accToggleBtn').style.display = 'block';
             document.getElementById('accPanelWrapper').style.display = accEnabled ? 'flex' : 'none';
-            
             document.getElementById('addAmendTeamBtn').style.display = 'inline-block';
             document.getElementById('addAmendSoloBtn').style.display = 'inline-block';
         }
@@ -2082,37 +1887,26 @@
     }
 
     function generateRegistrationSheet() {
-        document.getElementById('outputMenu').style.display = 'none';
-        const c = document.getElementById('registrationPrintSection'); 
-        c.innerHTML = '';
-        
+        resetMasterToggles();
+        const c = document.getElementById('registrationPrintSection'); c.innerHTML = '';
         let matchName = document.getElementById('matchTitle').value;
         let h = `<div class="roster-header"><h1>${matchName}</h1><h2>REGISTRATION</h2></div>
                  <table class="print-table"><thead><tr><th>NAME</th><th>TEAM</th><th>PRESENT</th><th>PRIZE POOL</th><th>POOLS</th></tr></thead><tbody>`;
-                    
         let sortedState = [...appState].sort((a,b) => (a.tName || "SOLO").localeCompare(b.tName || "SOLO"));
         sortedState.forEach(e => { 
             e.anglers.forEach(a => { 
-                let aName = a.name || '';
-                let mobStr = (accEnabled && a.mobility) ? ' [A]' : '';
-                let capStr = a.captain ? ' [C]' : '';
-                let tName = e.tName || 'SOLO';
+                let aName = a.name || ''; let mobStr = (accEnabled && a.mobility) ? ' [A]' : '';
+                let capStr = a.captain ? ' [C]' : ''; let tName = e.tName || 'SOLO';
                 h += `<tr><td>${aName}${capStr}${mobStr}</td><td>${tName}</td><td><div class="print-checkbox"></div></td><td><div class="print-checkbox"></div></td><td><div class="print-checkbox"></div></td></tr>`; 
             }); 
         });
-        h += `</tbody></table>`;
-        c.innerHTML = h;
-        
-        document.body.classList.add('printing-registration'); 
-        window.print(); 
-        document.body.classList.remove('printing-registration');
+        h += `</tbody></table>`; c.innerHTML = h;
+        document.body.classList.add('printing-registration'); window.print(); document.body.classList.remove('printing-registration');
     }
 
     function printZoneRosters() {
-        document.getElementById('outputMenu').style.display = 'none';
-        const c = document.getElementById('rosterSection'); 
-        c.innerHTML = '';
-        
+        resetMasterToggles();
+        const c = document.getElementById('rosterSection'); c.innerHTML = '';
         let days = matchDays === 2 ? [1, 2] : [1];
         days.forEach(d => { 
             zones.forEach(z => {
@@ -2126,42 +1920,30 @@
                         }
                     }); 
                 });
-                
                 if (list.length === 0) return; 
-                
                 list.sort((a, b) => {
-                    let numA = parseInt(a.p) || 0;
-                    let numB = parseInt(b.p) || 0;
+                    let numA = parseInt(a.p) || 0; let numB = parseInt(b.p) || 0;
                     if (numA !== numB) return numA - numB;
-                    let strA = String(a.p).replace(/[0-9]/g, '');
-                    let strB = String(b.p).replace(/[0-9]/g, '');
+                    let strA = String(a.p).replace(/[0-9]/g, ''); let strB = String(b.p).replace(/[0-9]/g, '');
                     return strA.localeCompare(strB);
                 });
-                
                 let h = `<div class="roster-page"><div class="roster-header"><h1>DAY ${d} - ${z}</h1></div>
                             <table class="print-table"><thead><tr><th>PEG</th><th>NAME</th><th>TEAM</th></tr></thead><tbody>`;
                 list.forEach(i => { h += `<tr><td>${i.p}</td><td>${i.n}</td><td>${i.t || 'SOLO'}</td></tr>`; });
-                h += `</tbody></table></div>`;
-                c.innerHTML += h;
+                h += `</tbody></table></div>`; c.innerHTML += h;
             }); 
         });
-        
-        document.body.classList.add('printing-rosters'); 
-        window.print(); 
-        document.body.classList.remove('printing-rosters');
+        document.body.classList.add('printing-rosters'); window.print(); document.body.classList.remove('printing-rosters');
     }
 
     function generateDispatchSlips() {
-        document.getElementById('outputMenu').style.display = 'none';
-        const c = document.getElementById('dispatchSection'); 
-        c.innerHTML = '';
-        
+        resetMasterToggles();
+        const c = document.getElementById('dispatchSection'); c.innerHTML = '';
         let teamsOnly = []; appState.forEach(e => { if (e.isTeam) teamsOnly.push(e); });
         teamsOnly.forEach(e => {
             let h = `<div class="dispatch-slip" style="page-break-after: always;"><div class="dispatch-header"><h1>TEAM: ${e.tName || 'UNNAMED TEAM'}</h1></div>
                         <table class="print-table"><thead><tr><th>NAME</th><th>DAY 1</th>${matchDays === 2 ? '<th>DAY 2</th>' : ''}
                         <th style="width:100px;">PRIZE POT (£)</th><th style="width:120px;">SECRET PAIRS (£)</th><th style="width:120px;">ANGLER TOTAL</th></tr></thead><tbody>`;
-                            
             e.anglers.forEach(a => { 
                 h += `<tr><td>${a.name || ''} ${a.captain ? '[C]' : ''}${(accEnabled && a.mobility) ? '[A]' : ''}</td>
                         <td>${a.z1} ${a.p1}</td>${matchDays === 2 ? `<td>${a.z2} ${a.p2}</td>` : ''}<td></td><td></td><td></td></tr>`; 
@@ -2173,8 +1955,7 @@
         
         let solosOnly = []; appState.forEach(e => { if (!e.isTeam) solosOnly.push(e); });
         for (let i = 0; i < solosOnly.length; i += 4) {
-            let batch = [];
-            for (let j = 0; j < 4; j++) { if (i + j < solosOnly.length) batch.push(solosOnly[i + j]); }
+            let batch = []; for (let j = 0; j < 4; j++) { if (i + j < solosOnly.length) batch.push(solosOnly[i + j]); }
             const page = document.createElement('div'); page.style.pageBreakAfter = 'always';
             batch.forEach(e => { 
                 const a = e.anglers[0]; 
@@ -2186,14 +1967,11 @@
             });
             c.appendChild(page);
         }
-        
-        document.body.classList.add('printing-dispatch'); 
-        window.print(); 
-        document.body.classList.remove('printing-dispatch');
+        document.body.classList.add('printing-dispatch'); window.print(); document.body.classList.remove('printing-dispatch');
     }
 
     function shareDraw() {
-        document.getElementById('outputMenu').style.display = 'none';
+        resetMasterToggles();
         const el = document.getElementById('resultsSection'); 
         el.classList.add('mobile-pdf-export');
         html2pdf().set({ margin: 0.1, filename: 'DRAW.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, scrollY: 0 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } }).from(el).save().then(() => {
@@ -2207,8 +1985,7 @@
             persistState();
             const ind = document.getElementById('saveIndicator');
             if (ind) {
-                ind.style.opacity = '1';
-                clearTimeout(saveTimeout);
+                ind.style.opacity = '1'; clearTimeout(saveTimeout);
                 saveTimeout = setTimeout(() => { ind.style.opacity = '0'; }, 1000);
             }
         }
