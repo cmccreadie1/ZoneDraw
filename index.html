@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.49</title>
+    <title>ZONEDRAW v12.04.50</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -459,9 +459,9 @@
         /* --- UX Overhaul Menu Styles --- */
         .master-menu-grid { 
             display: grid; 
-            grid-template-columns: 1fr; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
             gap: 15px; 
-            max-width: 600px; 
+            max-width: 1200px; 
             margin: 0 auto 30px; 
             padding: 0 20px;
         }
@@ -477,6 +477,7 @@
             display: flex; 
             flex-direction: column; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            justify-content: center;
         }
 
         .btn-ui:hover { 
@@ -592,7 +593,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.49</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.50</span></div>
         <div id="saveIndicator" style="position: fixed; top: 15px; right: 20px; background: #4caf50; color: white; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 9999; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✓ SAVED</div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
@@ -691,9 +692,15 @@
 
 <div id="resultsSection">
     
-    <div class="no-print" style="display:flex; gap:12px; justify-content:center; margin-bottom:20px; flex-wrap:wrap;">
-        <button onclick="toggleMasterMenu('manage')" class="btn-action-outline" style="border-color:#3b82f6; color:#3b82f6;">⚙️ MANAGE DRAW</button>
-        <button onclick="toggleMasterMenu('output')" class="btn-action" style="background:#0f172a; border-color:#0f172a;">🖨️ OUTPUT MENU</button>
+    <div class="no-print" style="display:flex; gap:15px; justify-content:center; margin-bottom:20px; flex-wrap:wrap; max-width: 1000px; margin-left: auto; margin-right: auto;">
+        <button onclick="toggleMasterMenu('manage')" class="btn-ui" style="flex:1; min-width: 300px; border-color:#3b82f6; align-items:center; text-align:center;">
+            <strong style="color:#3b82f6; font-size:18px;">⚙️ MANAGE DRAW</strong>
+            <span style="font-size:13px; color:#64748b;">Add latecomers, swap pegs, fix typos, or redraw.</span>
+        </button>
+        <button onclick="toggleMasterMenu('output')" class="btn-ui" style="flex:1; min-width: 300px; background:#0f172a; border-color:#0f172a; align-items:center; text-align:center;">
+            <strong style="color:white; font-size:18px;">🖨️ OUTPUT MENU</strong>
+            <span style="color:white; opacity:0.9; font-size:13px;">Print rosters, slips, and copy Excel data.</span>
+        </button>
     </div>
     
     <div id="manageMenu" class="master-menu-grid no-print" style="display:none;">
@@ -783,8 +790,8 @@
             <span id="tkAnglers" style="font-size:28px; font-weight:900; color:var(--text);">0</span>
         </div>
         <div id="amendTools" style="display:none; gap:10px;">
-            <button class="btn-action-outline" onclick="addNewStateItem(true)">+ TEAM</button>
-            <button class="btn-action-outline" onclick="addNewStateItem(false)">+ SOLO</button>
+            <button id="addAmendTeamBtn" class="btn-action-outline" onclick="addNewStateItem(true)">+ TEAM</button>
+            <button id="addAmendSoloBtn" class="btn-action-outline" onclick="addNewStateItem(false)">+ SOLO</button>
             <button id="undoBtn" class="btn-action-outline" style="border-color:#f59e0b; color:#f59e0b; display:none;" onclick="undoLastAction()">↩️ UNDO</button>
         </div>
     </div>
@@ -1466,14 +1473,29 @@
         }, 30);
     }
 
+    function getAlphaPeg(z, day, usedObj) {
+        let zIdx = zones.indexOf(z);
+        let maxBase = (zIdx + 1) * currentZoneSize;
+        let letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        for (let i = 0; i < letters.length; i++) {
+            let testPeg = maxBase + letters[i];
+            if (!usedObj[z].includes(String(testPeg))) {
+                usedObj[z].push(String(testPeg));
+                return testPeg;
+            }
+        }
+        return maxBase + 'Z'; 
+    }
+
     function runDraw() {
+        
         appState.sort((a, b) => {
             let getPriority = (entry) => { 
                 let hasA = accEnabled && entry.anglers.some(ang => ang.mobility); 
                 if (entry.isTeam && hasA) return 4;
                 if (!entry.isTeam && hasA) return 3;
                 if (entry.isTeam) return 2;
-                return 1;
+                return 1; 
             };
             return getPriority(b) - getPriority(a);
         });
@@ -1498,14 +1520,18 @@
         
         let p1 = zones.map((z, idx) => { 
             let p = []; 
-            for (let i = 1; i <= zSize; i++) p.push((idx * zSize) + i);
+            for (let i = 1; i <= zSize; i++) {
+                p.push((idx * zSize) + i);
+            }
             p.sort(() => Math.random() - 0.5); 
             return {z, p}; 
         });
         
         let p2 = zones.map((z, idx) => { 
             let p = []; 
-            for (let i = 1; i <= zSize; i++) p.push((idx * zSize) + i);
+            for (let i = 1; i <= zSize; i++) {
+                p.push((idx * zSize) + i);
+            }
             p.sort(() => Math.random() - 0.5); 
             return {z, p}; 
         });
@@ -1513,7 +1539,9 @@
         let aEntries = [];
         if (accEnabled) {
             appState.forEach(e => {
-                if (e.anglers.some(a => a.mobility)) aEntries.push(e);
+                if (e.anglers.some(a => a.mobility)) {
+                    aEntries.push(e);
+                }
             });
         }
 
@@ -1524,14 +1552,18 @@
             zones.forEach(z => {
                 let zI = zones.indexOf(z);
                 let safeCount = 0;
-                p1[zI].p.forEach(pegNum => { if (s1A.includes(pegNum)) safeCount++; });
+                p1[zI].p.forEach(pegNum => {
+                    if (s1A.includes(pegNum)) safeCount++;
+                });
                 for (let i = 0; i < safeCount; i++) availableD1Safe.push(z);
             });
             
             zones.forEach(z => {
                 let zI = zones.indexOf(z);
                 let safeCount = 0;
-                p2[zI].p.forEach(pegNum => { if (s2A.includes(pegNum)) safeCount++; });
+                p2[zI].p.forEach(pegNum => {
+                    if (s2A.includes(pegNum)) safeCount++;
+                });
                 for (let i = 0; i < safeCount; i++) availableD2Safe.push(z);
             });
 
@@ -1541,6 +1573,7 @@
             for (let attempt = 0; attempt < 100; attempt++) {
                 let tempD1 = [...availableD1Safe].sort(() => Math.random() - 0.5);
                 let tempD2 = [...availableD2Safe].sort(() => Math.random() - 0.5);
+                
                 let clashes = 0;
                 let currentPairs = [];
                 
@@ -1582,7 +1615,8 @@
             }
             
             let popVal = pools[zI].p.pop();
-            return popVal !== undefined ? popVal : 9999;
+            if (popVal !== undefined) return popVal;
+            return 9999;
         };
         
         appState.forEach(e => {
@@ -1593,7 +1627,9 @@
                 }
                 
                 if (accEnabled && mobilityMode === 'B' && hasA) {
-                    let d1Z = [null, null, null, null], d2Z = [null, null, null, null]; 
+                    let d1Z = [null, null, null, null];
+                    let d2Z = [null, null, null, null]; 
+                    
                     e.anglers.forEach((a, i) => { 
                         if (a.mobility) { d1Z[i] = ancZ1; d2Z[i] = ancZ2; } 
                     });
@@ -1630,7 +1666,8 @@
                 } else if (accEnabled && mobilityMode === 'A' && hasA) {
                     let mI = e.anglers.findIndex(a => a.mobility); 
                     let a = e.anglers[mI];
-                    let targetZ1 = a.preZ1, targetZ2 = a.preZ2;
+                    let targetZ1 = a.preZ1;
+                    let targetZ2 = a.preZ2;
                     
                     if (!targetZ1) targetZ1 = [...zones].sort(() => Math.random() - 0.5)[0];
                     if (!targetZ2) {
@@ -1640,7 +1677,8 @@
                         targetZ2 = randZones.length > 0 ? randZones[0] : targetZ1;
                     }
 
-                    let d1Z = [null, null, null, null], d2Z = [null, null, null, null];
+                    let d1Z = [null, null, null, null];
+                    let d2Z = [null, null, null, null];
                     d1Z[mI] = targetZ1; d2Z[mI] = targetZ2;
                     
                     let remainingD1 = []; zones.forEach(z => { if (z !== targetZ1) remainingD1.push(z); });
@@ -1682,7 +1720,9 @@
                 if (accEnabled && mobilityMode === 'B' && hasMobility) { 
                     a.z1 = ancZ1; a.z2 = ancZ2; 
                 } else if (accEnabled && mobilityMode === 'A' && hasMobility) {
-                    a.z1 = a.preZ1 ? a.preZ1 : zones[Math.floor(Math.random() * zones.length)];
+                    if (a.preZ1) a.z1 = a.preZ1;
+                    else a.z1 = zones[Math.floor(Math.random() * zones.length)];
+                    
                     if (a.preZ2) a.z2 = a.preZ2;
                     else {
                         let av2 = []; zones.forEach(z => { if (z !== a.z1) av2.push(z); });
@@ -1706,7 +1746,7 @@
 
     function toggleSwapMode() { 
         document.getElementById('manageMenu').style.display = 'none';
-        isSwapMode = !isSwapMode;
+        if (isSwapMode) isSwapMode = false; else isSwapMode = true;
         swapObj1 = null; 
         document.getElementById('swapPrompt').style.display = isSwapMode ? 'block' : 'none';
         displayDraw(); 
@@ -1723,16 +1763,12 @@
                 alert("Please select another Day " + swapObj1.day + " peg to complete the swap."); 
                 return; 
             }
-            
             let e1 = null, e2 = null;
             appState.forEach(e => {
                 if (e.id === swapObj1.eId) e1 = e;
                 if (e.id === eId) e2 = e;
             });
-            
-            const a1 = e1.anglers[swapObj1.aI]; 
-            const a2 = e2.anglers[aI]; 
-            
+            const a1 = e1.anglers[swapObj1.aI]; const a2 = e2.anglers[aI]; 
             if (day === 1) { 
                 let tempZ = a1.z1; a1.z1 = a2.z1; a2.z1 = tempZ;
                 let tempP = a1.p1; a1.p1 = a2.p1; a2.p1 = tempP;
@@ -1740,7 +1776,6 @@
                 let tempZ = a1.z2; a1.z2 = a2.z2; a2.z2 = tempZ;
                 let tempP = a1.p2; a1.p2 = a2.p2; a2.p2 = tempP;
             }
-            
             toggleSwapMode(); 
         } 
     }
@@ -1753,7 +1788,6 @@
 
         appState.forEach(team => {
             let tN = team.tName || 'SOLO';
-            
             if (team.isTeam) {
                 let d1Z = {}, d2Z = {};
                 team.anglers.forEach((a, aI) => {
@@ -1776,7 +1810,6 @@
             
             team.anglers.forEach((a, aI) => {
                 let aN = a.name || 'UNNAMED';
-                
                if (!a.z1 || a.p1 === undefined || a.p1 === 9999) {
                     errors.push(`GHOST PEG: '${aN}' has an invalid peg on DAY 1.`);
                     clashMap.push({eId: team.id, aI: aI, day: 1});
@@ -1818,23 +1851,8 @@
         return { list: uniqueErrors, markers: clashMap };
     }
 
-    function getAlphaPeg(z, day, usedObj) {
-        let zIdx = zones.indexOf(z);
-        let maxBase = (zIdx + 1) * currentZoneSize;
-        let letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        for (let i = 0; i < letters.length; i++) {
-            let testPeg = maxBase + letters[i];
-            if (!usedObj[z].includes(String(testPeg))) {
-                usedObj[z].push(String(testPeg));
-                return testPeg;
-            }
-        }
-        return maxBase + 'Z'; 
-    }
-
     function injectLatecomer(isTeam) {
         document.getElementById('manageMenu').style.display = 'none';
-        
         let used1 = { 'RED':[], 'YELLOW':[], 'GREEN':[], 'BLUE':[] };
         let used2 = { 'RED':[], 'YELLOW':[], 'GREEN':[], 'BLUE':[] };
         
@@ -1878,7 +1896,6 @@
                         p2_val = getAlphaPeg(d2Z[i], 2, used2);
                     }
                 }
-                
                 newEntry.anglers.push({ name: '', z1: d1Z[i], p1: p1_val, z2: matchDays === 2 ? d2Z[i] : undefined, p2: p2_val });
             }
         } else {
@@ -1907,7 +1924,6 @@
                     p2_val = getAlphaPeg(picked2Z, 2, used2);
                 }
             }
-            
             newEntry.anglers.push({ name: '', z1: picked1Z, p1: p1_val, z2: matchDays === 2 ? picked2Z : undefined, p2: p2_val });
         }
         
@@ -2015,10 +2031,10 @@
                 h += `<div class="res-row">
                         <span class="angler-name">${aName}${cTag}${aTag}</span>
                         <div class="draw-pill${p1C}" style="background:${d1Bg}" onclick="handleSwapClick('${g.id}',${aI},1)">
-                            <span>${a.z1}</span> <span class="peg-num">${a.p1}</span>${d1SafeTag}
+                            <span>${a.z1 || 'UNDEFINED'}</span> <span class="peg-num">${a.p1 !== undefined ? a.p1 : 'UNDEFINED'}</span>${d1SafeTag}
                         </div>
                         <div class="draw-pill${p2C}" style="background:${d2Bg}" onclick="handleSwapClick('${g.id}',${aI},2)">
-                            <span>${a.z2 || '-'}</span> <span class="peg-num">${a.p2 || '-'}</span>${d2SafeTag}
+                            <span>${a.z2 || '-'}</span> <span class="peg-num">${a.p2 !== undefined ? a.p2 : '-'}</span>${d2SafeTag}
                         </div>
                       </div>`;
             });
@@ -2050,11 +2066,17 @@
             document.getElementById('editDrawBanner').style.display = 'block';
             document.getElementById('accToggleBtn').style.display = 'none';
             document.getElementById('accPanelWrapper').style.display = 'none';
+            
+            document.getElementById('addAmendTeamBtn').style.display = 'none';
+            document.getElementById('addAmendSoloBtn').style.display = 'none';
         } else {
             document.getElementById('setupPanel').style.display = 'block';
             document.getElementById('editDrawBanner').style.display = 'none';
             document.getElementById('accToggleBtn').style.display = 'block';
             document.getElementById('accPanelWrapper').style.display = accEnabled ? 'flex' : 'none';
+            
+            document.getElementById('addAmendTeamBtn').style.display = 'inline-block';
+            document.getElementById('addAmendSoloBtn').style.display = 'inline-block';
         }
         renderStateToScreen(); 
     }
@@ -2107,7 +2129,6 @@
                 
                 if (list.length === 0) return; 
                 
-                // Alpha Peg aware sorting
                 list.sort((a, b) => {
                     let numA = parseInt(a.p) || 0;
                     let numB = parseInt(b.p) || 0;
