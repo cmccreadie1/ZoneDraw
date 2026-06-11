@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.56</title>
+    <title>ZONEDRAW v12.04.57</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -26,7 +26,6 @@
             --blue-soft: #eff6ff;
             --pending: #f59e0b; 
             --a-color: #ca8a04; 
-            --c-color: #0ea5e9;
         }
 
         html {
@@ -197,7 +196,7 @@
 
         .res-row { 
             display: grid; 
-            grid-template-columns: 1fr 100px 100px; 
+            grid-template-columns: minmax(0, 1fr) 90px 90px; 
             gap: 8px; 
             align-items: center; 
             padding: 5px 8px; 
@@ -213,6 +212,9 @@
             font-weight: 900; 
             letter-spacing: 0.5px; 
             pointer-events: none; 
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .draw-pill { 
@@ -263,13 +265,6 @@
 
         .a-tag { 
             color: var(--a-color); 
-            font-weight: 900; 
-            margin-left: 6px; 
-            font-size: 12px; 
-        }
-        
-        .c-tag { 
-            color: var(--c-color); 
             font-weight: 900; 
             margin-left: 6px; 
             font-size: 12px; 
@@ -558,7 +553,7 @@
         .mobile-pdf-export .bucket-grid { display: flex !important; flex-direction: column !important; gap: 20px !important; }
         .mobile-pdf-export .zone-card { width: 100% !important; box-sizing: border-box !important; page-break-inside: avoid !important; }
         .mobile-pdf-export #resultsSection { padding: 10px !important; width: 100% !important; max-width: 420px !important; margin: 0 !important; }
-        .mobile-pdf-export .res-row { grid-template-columns: 1fr auto auto !important; gap: 15px !important; padding: 10px 5px !important; }
+        .mobile-pdf-export .res-row { grid-template-columns: minmax(0, 1fr) auto auto !important; gap: 15px !important; padding: 10px 5px !important; }
         .mobile-pdf-export .res-row:nth-child(2) span { font-size: 13px !important; }
         .mobile-pdf-export .angler-name { font-size: 17px !important; }
         .mobile-pdf-export .draw-pill { font-size: 13px !important; padding: 8px 14px !important; }
@@ -582,12 +577,11 @@
             
             .zone-card { border: 3px solid black !important; background: white !important; color: black !important; box-shadow: none !important; break-inside: avoid; page-break-inside: avoid; }
             .zone-header { background: white !important; border-bottom: 2px solid black !important; color: black !important; }
-            .res-row { border-bottom: 1px solid #ccc !important; }
+            .res-row { border-bottom: 1px solid #ccc !important; grid-template-columns: minmax(0, 1fr) 90px 90px !important; }
             .draw-pill { border: 2px solid black !important; color: black !important; background: white !important; }
             .peg-num { color: black !important; }
             .a-name { color: black !important; font-weight: 900 !important; }
             .a-tag { color: black !important; border: 1px solid black !important; padding: 2px 4px !important; border-radius: 4px !important; }
-            .c-tag { color: black !important; border: 1px solid black !important; padding: 2px 4px !important; border-radius: 4px !important; }
             
             .print-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             .print-table th { border: 2px solid black; padding: 12px; font-size: 14px; font-weight: 900; text-align: left; background: #f8fafc; }
@@ -610,7 +604,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.56</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.57</span></div>
         <div id="saveIndicator" style="position: fixed; top: 15px; right: 20px; background: #4caf50; color: white; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 9999; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✓ SAVED</div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
@@ -694,7 +688,7 @@
 
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px; flex-wrap: wrap;">
             <button id="importExcelBtn" class="btn-action-outline" style="font-size: 16px; padding: 16px 32px; border-color: #10b981; color: #10b981;" onclick="showImportModal()">📋 IMPORT EXCEL ROSTER</button>
-            <button id="initMatchBtn" class="btn-action" style="font-size: 16px; padding: 16px 32px;" onclick="bulkInit()">INITIALIZE ENTRY SHEET</button>
+            <button id="initMatchBtn" class="btn-action" style="font-size: 16px; padding: 16px 32px;" onclick="bulkInit()">ENTER COMPETITORS MANUALLY</button>
         </div>
     </div>
     
@@ -865,9 +859,9 @@
         <h2 style="color: #10b981; font-size: 28px; margin-top: 0;">📋 PASTE EXCEL ROSTER</h2>
         <p style="font-size: 14px; font-weight: 600; margin-bottom: 20px; text-transform: none;">
             Copy the <strong>Angler Name</strong> and <strong>Team Name</strong> columns from Excel and paste them below.<br>
-            Leave the Team column blank for solo anglers. Add <b>[A]</b> or <b>[C]</b> to a name for mobility/captain tags.
+            Leave the Team column blank for solo anglers. Add <b>[A]</b> to a name for a mobility tag.
         </p>
-        <textarea id="importRawData" rows="10" placeholder="John Smith [A]&#9;SCOTLAND&#10;David Bruce&#9;SCOTLAND&#10;Liam Ness&#9;&#10;Tom Jones [C]&#9;ENGLAND" style="font-size:12px; margin-bottom: 20px; resize: none; font-weight: normal !important; text-transform: none;"></textarea>
+        <textarea id="importRawData" rows="10" placeholder="John Smith [A]&#9;SCOTLAND&#10;David Bruce&#9;SCOTLAND&#10;Liam Ness&#9;&#10;Tom Jones&#9;ENGLAND" style="font-size:12px; margin-bottom: 20px; resize: none; font-weight: normal !important; text-transform: none;"></textarea>
         <div style="display: flex; flex-direction: column; gap: 15px;">
             <button onclick="closeImportModal()" class="btn-action" style="background:var(--text);">CANCEL</button>
             <button onclick="processExcelImport()" class="btn-action" style="background:#10b981; color: white;">IMPORT ROSTER</button>
@@ -1105,9 +1099,7 @@
                 rawName = rawName.replace(/[\(\[\{]A[\)\]\}]/i, '').trim();
             }
 
-            // Notice: Captain [C] logic has been completely removed to keep lists tidy.
-
-            let anglerObj = { name: rawName, mobility: isMobility ? 1 : 0, captain: 0 };
+            let anglerObj = { name: rawName, mobility: isMobility ? 1 : 0 };
 
             if (rawTeam) {
                 if (!tempTeams[rawTeam]) tempTeams[rawTeam] = [];
@@ -1183,11 +1175,10 @@
             
             e.anglers.forEach(a => { 
                 if (a.name) {
-                    let capStr = a.captain ? ' [C]' : '';
                     let accStr = (accEnabled && a.mobility) ? ' [A]' : '';
                     let d1Str = `D1: ${a.z1} ${a.p1}`;
                     let d2Str = `D2: ${a.z2 || '-'} ${a.p2 || '-'}`;
-                    txt += `  - ${a.name}${capStr}${accStr} | ${d1Str} | ${d2Str}\n`; 
+                    txt += `  - ${a.name}${accStr} | ${d1Str} | ${d2Str}\n`; 
                 }
             });
             txt += "\n";
@@ -1285,16 +1276,6 @@
         const entry = appState.find(e => e.id === eId);
         if (entry) { 
             entry.anglers[aIdx].mobility = entry.anglers[aIdx].mobility ? 0 : 1;
-            renderStateToScreen(); 
-        }
-    }
-
-    function toggleCaptain(eId, aIdx) {
-        const entry = appState.find(e => e.id === eId);
-        if (entry) { 
-            let currentState = entry.anglers[aIdx].captain;
-            entry.anglers.forEach(a => a.captain = 0);
-            if (!currentState) entry.anglers[aIdx].captain = 1;
             renderStateToScreen(); 
         }
     }
@@ -1428,13 +1409,10 @@
                 for (let i = 0; i < 4; i++) {
                     let mBg = entry.anglers[i].mobility ? 'var(--a-color)' : 'white';
                     let mColor = entry.anglers[i].mobility ? 'white' : 'var(--text)';
-                    let cBg = entry.anglers[i].captain ? 'var(--c-color)' : 'white';
-                    let cColor = entry.anglers[i].captain ? 'white' : 'var(--text)';
                     let aName = entry.anglers[i].name || '';
                     
                     h += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
                             <input type="text" class="a-name-input" value="${aName}" placeholder="ANGLER ${i+1}" oninput="updateAnglerName('${entry.id}', ${i}, this.value)">
-                            <button class="btn-tool" onclick="toggleCaptain('${entry.id}', ${i})" tabindex="-1" style="padding:10px 14px; background:${cBg}; color:${cColor}; border-color:${cBg};">[C]</button>
                             <button class="btn-tool" onclick="toggleMobility('${entry.id}', ${i})" tabindex="-1" style="padding:10px 14px; background:${mBg}; color:${mColor}; border-color:${mBg};">[A]</button>
                           </div>`;
                 }
@@ -2064,14 +2042,13 @@
                 
                 let aName = a.name || '';
                 let aTag = (accEnabled && a.mobility) ? ' <span class="a-tag">[A]</span>' : '';
-                let cTag = a.captain ? ' <span class="c-tag">[C]</span>' : '';
                 
                 let d1Bg = zColors[a.z1] || 'gray'; let d2Bg = zColors[a.z2] || 'gray';
                 let d1SafeTag = isPegSafe(a.p1, 1) ? '<br><small>[A]</small>' : '';
                 let d2SafeTag = isPegSafe(a.p2, 2) ? '<br><small>[A]</small>' : '';
                 
                 h += `<div class="res-row">
-                        <span class="angler-name">${aName}${cTag}${aTag}</span>
+                        <span class="angler-name" title="${aName}">${aName}${aTag}</span>
                         <div class="draw-pill${p1C}" style="background:${d1Bg}" onclick="handleSwapClick('${g.id}',${aI},1)">
                             <span>${a.z1 || 'UNDEFINED'}</span> <span class="peg-num">${a.p1 !== undefined ? a.p1 : 'UNDEFINED'}</span>${d1SafeTag}
                         </div>
@@ -2132,8 +2109,8 @@
         sortedState.forEach(e => { 
             e.anglers.forEach(a => { 
                 let aName = a.name || ''; let mobStr = (accEnabled && a.mobility) ? ' [A]' : '';
-                let capStr = a.captain ? ' [C]' : ''; let tName = e.tName || 'SOLO';
-                h += `<tr><td>${aName}${capStr}${mobStr}</td><td>${tName}</td><td><div class="print-checkbox"></div></td><td><div class="print-checkbox"></div></td><td><div class="print-checkbox"></div></td></tr>`; 
+                let tName = e.tName || 'SOLO';
+                h += `<tr><td>${aName}${mobStr}</td><td>${tName}</td><td><div class="print-checkbox"></div></td><td><div class="print-checkbox"></div></td><td><div class="print-checkbox"></div></td></tr>`; 
             }); 
         });
         h += `</tbody></table>`; c.innerHTML = h;
@@ -2152,7 +2129,7 @@
                         let targetZ = d === 1 ? a.z1 : a.z2;
                         if (targetZ === z) {
                             let targetP = d === 1 ? a.p1 : a.p2;
-                            list.push({ n: (a.name || '') + (a.captain ? ' [C]' : ''), t: e.tName, p: targetP }); 
+                            list.push({ n: (a.name || ''), t: e.tName, p: targetP }); 
                         }
                     }); 
                 });
@@ -2181,7 +2158,7 @@
                         <table class="print-table"><thead><tr><th>NAME</th><th>DAY 1</th>${matchDays === 2 ? '<th>DAY 2</th>' : ''}
                         <th style="width:100px;">PRIZE POT (£)</th><th style="width:120px;">SECRET PAIRS (£)</th><th style="width:120px;">ANGLER TOTAL</th></tr></thead><tbody>`;
             e.anglers.forEach(a => { 
-                h += `<tr><td>${a.name || ''} ${a.captain ? '[C]' : ''}${(accEnabled && a.mobility) ? '[A]' : ''}</td>
+                h += `<tr><td>${a.name || ''} ${(accEnabled && a.mobility) ? '[A]' : ''}</td>
                         <td>${a.z1} ${a.p1}</td>${matchDays === 2 ? `<td>${a.z2} ${a.p2}</td>` : ''}<td></td><td></td><td></td></tr>`; 
             });
             h += `<tr><td colspan="${matchDays === 2 ? 5 : 4}" style="text-align: right; font-weight: 900; font-size: 16px; padding: 15px;">TOTAL TEAM CASH HANDOVER:</td>
@@ -2219,7 +2196,6 @@
     document.addEventListener('input', function(e) {
         if (isAppReady && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA')) {
             persistState();
-            // Don't run validation instantly if they are just typing in the import box
             if (e.target.id !== 'importRawData') {
                 runEntryValidation();
             }
