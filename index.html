@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.54</title>
+    <title>ZONEDRAW v12.04.56</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -46,7 +46,7 @@
             padding-bottom: 120px;
         }
 
-        input, select { 
+        input, select, textarea { 
             text-transform: uppercase; 
             font-weight: 900 !important; 
             color: var(--text); 
@@ -61,10 +61,16 @@
             font-size: 14px; 
         }
 
-        input:focus, select:focus { 
+        input:focus, select:focus, textarea:focus { 
             border-color: var(--accent); 
             background: white; 
             box-shadow: 0 0 0 3px var(--accent-glow); 
+        }
+
+        .input-error {
+            background: #fffbeb !important;
+            border-color: #f59e0b !important;
+            color: #b45309 !important;
         }
 
         .fixed-header { 
@@ -278,11 +284,20 @@
             display: none;
         }
 
+        .anomaly-banner.warning {
+            background: #fffbeb;
+            border-color: #f59e0b;
+        }
+
         .anomaly-banner h3 {
             color: #ef4444;
             margin: 0 0 10px 0;
             font-size: 16px;
             text-align: center;
+        }
+        
+        .anomaly-banner.warning h3 {
+            color: #d97706;
         }
 
         .anomaly-banner ul {
@@ -292,6 +307,10 @@
             margin: 0;
             padding-left: 20px;
             text-transform: none;
+        }
+        
+        .anomaly-banner.warning ul {
+            color: #92400e;
         }
 
         .anomaly-banner li {
@@ -591,7 +610,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.54</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.56</span></div>
         <div id="saveIndicator" style="position: fixed; top: 15px; right: 20px; background: #4caf50; color: white; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 9999; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✓ SAVED</div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
@@ -673,7 +692,10 @@
             </div>
         </div>
 
-        <button id="initMatchBtn" class="btn-action" style="margin-top:25px; font-size: 16px; padding: 16px 32px;" onclick="bulkInit()">INITIALIZE ENTRY SHEET</button>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 25px; flex-wrap: wrap;">
+            <button id="importExcelBtn" class="btn-action-outline" style="font-size: 16px; padding: 16px 32px; border-color: #10b981; color: #10b981;" onclick="showImportModal()">📋 IMPORT EXCEL ROSTER</button>
+            <button id="initMatchBtn" class="btn-action" style="font-size: 16px; padding: 16px 32px;" onclick="bulkInit()">INITIALIZE ENTRY SHEET</button>
+        </div>
     </div>
     
     <div id="entryList">
@@ -789,6 +811,12 @@
     
     <div id="actionBtnArea" style="display:flex; flex-direction:column; align-items:flex-end;">
         <div id="teamClashWarning" style="display:none; color:#ef4444; font-size:12px; font-weight:900; margin-bottom:8px;">⚠️ STATIC MODE CLASH: MAX 1 [A] PER TEAM</div>
+        
+        <div id="entryAnomalyBanner" class="anomaly-banner warning no-print" style="display:none; margin-bottom:15px; width: 100%; max-width: 450px;">
+            <h3>⚠️ PRE-DRAW WARNINGS</h3>
+            <ul id="entryAnomalyList"></ul>
+        </div>
+
         <div style="display:flex; gap:15px; align-items:flex-start;">
             <button class="btn-action-outline" id="mergeBtn" style="display:none; border-color:#10b981; color:#10b981; padding: 20px 40px; height: fit-content;" onclick="mergeSelected()">LINK TEAM (4)</button>
             
@@ -797,7 +825,7 @@
             </div>
 
             <div id="processDrawContainer" style="display:flex; flex-direction:column; align-items:center;">
-                <button class="btn-action" id="mainActionBtn" onclick="initiateShuffle()" style="font-size: 16px; padding: 20px 40px; width: 100%;">PROCESS DRAW</button>
+                <button class="btn-action" id="mainActionBtn" onclick="initiateShuffle()" style="font-size: 16px; padding: 20px 40px; width: 100%; transition: 0.3s;">PROCESS DRAW</button>
             </div>
         </div>
     </div>
@@ -828,6 +856,21 @@
         <div style="display: flex; flex-direction: column; gap: 15px;">
             <button onclick="closeWipeModal()" class="btn-action" style="background:var(--text);">CANCEL</button>
             <button onclick="executeNuclearWipe()" class="btn-action" style="background:var(--red-color); color: white;">YES, DOWNLOAD BACKUP & RESET</button>
+        </div>
+    </div>
+</div>
+
+<div id="importModal" class="modal-overlay no-print">
+    <div class="modal-content" style="max-width: 700px;">
+        <h2 style="color: #10b981; font-size: 28px; margin-top: 0;">📋 PASTE EXCEL ROSTER</h2>
+        <p style="font-size: 14px; font-weight: 600; margin-bottom: 20px; text-transform: none;">
+            Copy the <strong>Angler Name</strong> and <strong>Team Name</strong> columns from Excel and paste them below.<br>
+            Leave the Team column blank for solo anglers. Add <b>[A]</b> or <b>[C]</b> to a name for mobility/captain tags.
+        </p>
+        <textarea id="importRawData" rows="10" placeholder="John Smith [A]&#9;SCOTLAND&#10;David Bruce&#9;SCOTLAND&#10;Liam Ness&#9;&#10;Tom Jones [C]&#9;ENGLAND" style="font-size:12px; margin-bottom: 20px; resize: none; font-weight: normal !important; text-transform: none;"></textarea>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <button onclick="closeImportModal()" class="btn-action" style="background:var(--text);">CANCEL</button>
+            <button onclick="processExcelImport()" class="btn-action" style="background:#10b981; color: white;">IMPORT ROSTER</button>
         </div>
     </div>
 </div>
@@ -1021,6 +1064,90 @@
         checkTeamClash();
     }
 
+    // --- Import Modal Logic ---
+    function showImportModal() {
+        document.getElementById('importRawData').value = '';
+        document.getElementById('importModal').style.display = 'flex';
+    }
+
+    function closeImportModal() {
+        document.getElementById('importModal').style.display = 'none';
+    }
+
+    function processExcelImport() {
+        let rawData = document.getElementById('importRawData').value;
+        if (!rawData.trim()) {
+            closeImportModal();
+            return;
+        }
+
+        let rows = rawData.split('\n');
+        let tempTeams = {};
+        let tempSolos = [];
+
+        rows.forEach(row => {
+            if (!row.trim()) return;
+            // Excel natively uses tabs to separate columns when pasting
+            let cols = row.split('\t'); 
+            let rawName = (cols[0] || '').trim().toUpperCase();
+            let rawTeam = (cols[1] || '').trim().toUpperCase();
+            
+            if (!rawName && !rawTeam) return;
+
+            let isMobility = false;
+            let isCaptain = false;
+
+            if (rawName.includes('[A]')) {
+                isMobility = true;
+                rawName = rawName.replace('[A]', '').trim();
+            }
+            if (rawName.includes('[C]')) {
+                isCaptain = true;
+                rawName = rawName.replace('[C]', '').trim();
+            }
+
+            let anglerObj = { name: rawName, mobility: isMobility ? 1 : 0, captain: isCaptain ? 1 : 0 };
+
+            if (rawTeam) {
+                if (!tempTeams[rawTeam]) tempTeams[rawTeam] = [];
+                tempTeams[rawTeam].push(anglerObj);
+            } else {
+                tempSolos.push(anglerObj);
+            }
+        });
+
+        appState = [];
+        trashCan = null;
+        document.getElementById('undoBtn').style.display = 'none';
+
+        // Process Teams into exactly 4-man chunks
+        Object.keys(tempTeams).forEach(tName => {
+            let members = tempTeams[tName];
+            for (let i = 0; i < members.length; i += 4) {
+                let chunk = members.slice(i, i + 4);
+                while (chunk.length < 4) { chunk.push({}); }
+                appState.push({ id: genId(), isTeam: true, tName: tName, anglers: chunk });
+            }
+        });
+
+        // Process Solos
+        tempSolos.forEach(solo => {
+            appState.push({ id: genId(), isTeam: false, tName: '', anglers: [solo] });
+        });
+
+        closeImportModal();
+        
+        document.getElementById('initMatchBtn').style.display = 'none';
+        document.getElementById('importExcelBtn').style.display = 'none';
+        document.getElementById('commandBar').style.display = 'flex';
+        document.getElementById('masterActionBar').style.display = 'none';
+        document.getElementById('amendTools').style.display = 'flex'; 
+        document.getElementById('actionBtnArea').style.display = 'flex';
+        
+        renderStateToScreen();
+        showToast("📋 ROSTER IMPORTED SUCCESSFULLY");
+    }
+
     function showRedrawModal() { document.getElementById('redrawModal').style.display = 'flex'; }
     function closeRedrawModal() { document.getElementById('redrawModal').style.display = 'none'; }
     function showWipeModal() { document.getElementById('wipeModal').style.display = 'flex'; }
@@ -1112,6 +1239,7 @@
         document.getElementById('setupPanel').style.display = 'block';
         document.getElementById('editDrawBanner').style.display = 'none';
         document.getElementById('initMatchBtn').style.display = 'inline-block';
+        document.getElementById('importExcelBtn').style.display = 'inline-block';
         document.getElementById('commandBar').style.display = 'none';
         document.getElementById('masterActionBar').style.display = 'none';
         document.getElementById('undoBtn').style.display = 'none';
@@ -1133,6 +1261,7 @@
         for(let y = 0; y < i; y++) appState.push({ id: genId(), isTeam: false, tName: '', anglers: [{}] });
         
         document.getElementById('initMatchBtn').style.display = 'none';
+        document.getElementById('importExcelBtn').style.display = 'none';
         document.getElementById('commandBar').style.display = 'flex';
         document.getElementById('masterActionBar').style.display = 'none';
         document.getElementById('amendTools').style.display = 'flex'; 
@@ -1196,6 +1325,83 @@
         }
     }
 
+    // --- Pre-Draw Validation Engine ---
+    function runEntryValidation() {
+        if (document.getElementById('entrySection').style.display !== 'block') return;
+
+        let errors = [];
+        let severeErrors = false;
+        let anglerNames = {};
+        let teamNames = {};
+
+        document.querySelectorAll('.a-name-input, .t-name').forEach(el => el.classList.remove('input-error'));
+
+        appState.forEach((entry) => {
+            if (entry.isTeam) {
+                let tName = (entry.tName || '').trim();
+                let filledAnglers = entry.anglers.filter(a => (a.name || '').trim() !== '').length;
+
+                // 1. Missing Team Identity
+                if (filledAnglers > 0 && tName === '') {
+                    errors.push(`MISSING TEAM NAME: A team module with anglers has no team name.`);
+                    severeErrors = true;
+                    let tInputs = document.querySelectorAll(`.zone-card[data-id="${entry.id}"] .t-name`);
+                    tInputs.forEach(el => el.classList.add('input-error'));
+                }
+
+                // 2. Duplicate Team Names
+                if (tName !== '') {
+                    if (teamNames[tName]) {
+                        errors.push(`DUPLICATE TEAM: '${tName}' is used more than once.`);
+                        severeErrors = true;
+                        document.querySelectorAll('.t-name').forEach(el => {
+                            if(el.value.trim().toUpperCase() === tName) el.classList.add('input-error');
+                        });
+                    } else {
+                        teamNames[tName] = true;
+                    }
+                }
+
+                // 3. Incomplete Teams
+                if (filledAnglers > 0 && filledAnglers < 4) {
+                    let tDisp = tName !== '' ? `'${tName}'` : 'An unnamed team';
+                    errors.push(`INCOMPLETE TEAM: ${tDisp} only has ${filledAnglers} out of 4 anglers.`);
+                }
+            }
+
+            // 4. Duplicate Anglers
+            entry.anglers.forEach((a) => {
+                let aName = (a.name || '').trim();
+                if (aName !== '') {
+                    if (anglerNames[aName]) {
+                        if (!errors.includes(`DUPLICATE ANGLER: '${aName}' is listed multiple times.`)) {
+                            errors.push(`DUPLICATE ANGLER: '${aName}' is listed multiple times.`);
+                        }
+                        severeErrors = true;
+                        document.querySelectorAll('.a-name-input').forEach(el => {
+                            if(el.value.trim().toUpperCase() === aName) el.classList.add('input-error');
+                        });
+                    } else {
+                        anglerNames[aName] = true;
+                    }
+                }
+            });
+        });
+
+        const banner = document.getElementById('entryAnomalyBanner');
+        const list = document.getElementById('entryAnomalyList');
+        
+        if (errors.length > 0) {
+            banner.style.display = 'block';
+            list.innerHTML = errors.map(err => `<li>${err}</li>`).join('');
+        } else {
+            banner.style.display = 'none';
+        }
+
+        window.currentSevereErrors = severeErrors;
+        checkTeamClash(); // This updates the actual button state
+    }
+
     function renderStateToScreen() {
         const tb = document.getElementById('entryTeamsBucket'); tb.innerHTML = '';
         const sb = document.getElementById('entrySolosBucket'); sb.innerHTML = '';
@@ -1250,7 +1456,7 @@
         document.getElementById('entryTeamsContainer').style.display = tb.innerHTML !== '' ? 'block' : 'none';
         document.getElementById('entrySolosContainer').style.display = sb.innerHTML !== '' ? 'block' : 'none';
         
-        updateTicker(); checkMerge(); checkTeamClash(); updateDrawButtons(); persistState();
+        updateTicker(); checkMerge(); updateDrawButtons(); runEntryValidation(); persistState();
     }
 
     function deleteStateEntry(id) { 
@@ -1323,7 +1529,19 @@
             }); 
         }
         document.getElementById('teamClashWarning').style.display = clash ? 'block' : 'none';
-        document.getElementById('mainActionBtn').disabled = clash ? true : false;
+        
+        let severeErrs = window.currentSevereErrors || false;
+        let processBtn = document.getElementById('mainActionBtn');
+        
+        if (clash || severeErrs) {
+            processBtn.disabled = true;
+            processBtn.style.opacity = '0.5';
+            processBtn.innerText = 'FIX ERRORS TO PROCESS';
+        } else {
+            processBtn.disabled = false;
+            processBtn.style.opacity = '1';
+            processBtn.innerText = 'PROCESS DRAW';
+        }
     }
     
     function updateTicker() { 
@@ -1879,6 +2097,7 @@
         
         if (appState.length > 0) { 
             document.getElementById('initMatchBtn').style.display = 'none'; 
+            document.getElementById('importExcelBtn').style.display = 'none'; 
             document.getElementById('commandBar').style.display = 'flex'; 
             document.getElementById('amendTools').style.display = 'flex'; 
             document.getElementById('actionBtnArea').style.display = 'flex'; 
@@ -1997,8 +2216,12 @@
 
     let saveTimeout;
     document.addEventListener('input', function(e) {
-        if (isAppReady && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) {
+        if (isAppReady && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA')) {
             persistState();
+            // Don't run validation instantly if they are just typing in the import box
+            if (e.target.id !== 'importRawData') {
+                runEntryValidation();
+            }
             const ind = document.getElementById('saveIndicator');
             if (ind) {
                 ind.style.opacity = '1'; clearTimeout(saveTimeout);
@@ -2025,6 +2248,7 @@
 
             if (appState.length > 0) { 
                 document.getElementById('initMatchBtn').style.display = 'none'; 
+                document.getElementById('importExcelBtn').style.display = 'none'; 
                 document.getElementById('commandBar').style.display = 'flex'; 
                 document.getElementById('amendTools').style.display = 'flex';
                 let tCount = 0, iCount = 0;
