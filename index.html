@@ -632,8 +632,8 @@
 
         <div style="margin-top: 25px; display:flex; flex-direction:column; align-items:center;">
             <button id="accToggleBtn" class="btn-action-outline" onclick="toggleAccPanel()" style="width: 100%; max-width: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 15px;" type="button">
-                <strong id="accToggleTitle" style="font-size: 14px; font-weight: 900; letter-spacing: 0.5px;">♿ REQUIRE ACCESSIBLE PEGS? [NO]</strong>
-                <span id="accToggleSub" style="font-size: 11px; font-weight: 600; text-transform: none; margin-top: 4px;">Leave as [NO] if all competitors can fish any peg on the beach.</span>
+                <strong id="accToggleTitle" style="font-size: 14px; font-weight: 900; letter-spacing: 0.5px;">ACCESSIBLE PEGS: OFF</strong>
+                <span id="accToggleSub" style="font-size: 11px; font-weight: 600; text-transform: none; margin-top: 4px;">Tap to enable safe zone and peg assignments.</span>
             </button>
         </div>
 
@@ -1053,14 +1053,14 @@
         
         if (accEnabled) {
             panel.style.display = 'flex';
-            title.innerText = '♿ REQUIRE ACCESSIBLE PEGS? [YES]';
-            sub.innerText = 'Assign competitors to specific safe zones or pegs.';
+            title.innerText = 'ACCESSIBLE PEGS: ON';
+            sub.innerText = 'Feature enabled. Assign safe zones or pegs below.';
             btn.style.background = 'var(--accent)';
             btn.style.color = 'white';
         } else {
             panel.style.display = 'none';
-            title.innerText = '♿ REQUIRE ACCESSIBLE PEGS? [NO]';
-            sub.innerText = 'Leave as [NO] if all competitors can fish any peg on the beach.';
+            title.innerText = 'ACCESSIBLE PEGS: OFF';
+            sub.innerText = 'Tap to enable safe zone and peg assignments.';
             btn.style.background = 'white';
             btn.style.color = 'var(--accent)';
         }
