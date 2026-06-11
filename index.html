@@ -1087,7 +1087,9 @@
 
         rows.forEach(row => {
             if (!row.trim()) return;
-            // Excel natively uses tabs to separate columns when pasting
+            // The code natively splits the row by Excel's hidden tabs
+            // It ONLY looks at Column 1 (Name) and Column 2 (Team).
+            // Any phone numbers or extra data in Column 3+ are completely ignored.
             let cols = row.split('\t'); 
             let rawName = (cols[0] || '').trim().toUpperCase();
             let rawTeam = (cols[1] || '').trim().toUpperCase();
@@ -1095,18 +1097,17 @@
             if (!rawName && !rawTeam) return;
 
             let isMobility = false;
-            let isCaptain = false;
 
-            if (rawName.includes('[A]')) {
+            // This smartly finds [A], (A), or {A} (case-insensitive)
+            if (rawName.match(/[\(\[\{]A[\)\]\}]/i)) {
                 isMobility = true;
-                rawName = rawName.replace('[A]', '').trim();
-            }
-            if (rawName.includes('[C]')) {
-                isCaptain = true;
-                rawName = rawName.replace('[C]', '').trim();
+                // Strips whatever weird bracket they used right out of the name
+                rawName = rawName.replace(/[\(\[\{]A[\)\]\}]/i, '').trim();
             }
 
-            let anglerObj = { name: rawName, mobility: isMobility ? 1 : 0, captain: isCaptain ? 1 : 0 };
+            // Notice: Captain [C] logic has been completely removed to keep lists tidy.
+
+            let anglerObj = { name: rawName, mobility: isMobility ? 1 : 0, captain: 0 };
 
             if (rawTeam) {
                 if (!tempTeams[rawTeam]) tempTeams[rawTeam] = [];
