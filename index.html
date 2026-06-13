@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.62</title>
+    <title>ZONEDRAW v12.04.63</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -622,7 +622,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.62</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.63</span></div>
         <div id="saveIndicator" style="position: fixed; top: 15px; right: 20px; background: #4caf50; color: white; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 9999; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✓ SAVED</div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
@@ -915,13 +915,6 @@
         'YELLOW': 'var(--yellow-color)', 
         'GREEN': 'var(--green-color)', 
         'BLUE': 'var(--blue-color)' 
-    };
-    
-    const zSofts = { 
-        'RED': 'var(--red-soft)', 
-        'YELLOW': 'var(--yellow-soft)', 
-        'GREEN': 'var(--green-soft)', 
-        'BLUE': 'var(--blue-soft)' 
     };
     
     let isAppReady = false; 
@@ -2059,13 +2052,13 @@
             let emptyStr = emptyPegs.length > 0 ? emptyPegs.join(', ') : 'NONE';
             let aStr = aPegs.length > 0 ? aPegs.join(', ') : 'NONE';
             
-            let extraInfo = `<div style="font-size:8px; margin-top:4px; font-weight:700; background:rgba(0,0,0,0.2); border-radius:4px; padding:2px 4px;">EMPTY: ${emptyStr}</div>`;
+            let extraInfo = `<div style="font-size:11px; margin-top:2px; font-weight:700; background:rgba(0,0,0,0.2); border-radius:4px; padding:1px 4px;">EMPTY: ${emptyStr}</div>`;
             if (accEnabled) {
-                extraInfo += `<div style="font-size:8px; margin-top:2px; font-weight:700; background:rgba(0,0,0,0.2); border-radius:4px; padding:2px 4px;">[A] PEGS: ${aStr}</div>`;
+                extraInfo += `<div style="font-size:11px; margin-top:2px; font-weight:700; background:rgba(0,0,0,0.2); border-radius:4px; padding:1px 4px;">[A] PEGS: ${aStr}</div>`;
             }
 
-            html += `<div style="flex:1; background:${bg}; padding:6px 4px; text-align:center; color:white; font-weight:900; font-size:14px; text-shadow:1px 1px 2px rgba(0,0,0,0.5); border-right:1px solid rgba(255,255,255,0.3); line-height:1.2;">
-                        <span style="font-size:10px; opacity:0.9;">${z}</span><br><span>${label}</span>
+            html += `<div style="flex:1; background:${bg}; padding:2px 4px; text-align:center; color:white; font-weight:900; font-size:18px; text-shadow:1px 1px 2px rgba(0,0,0,0.5); border-right:1px solid rgba(255,255,255,0.3); line-height:1.1;">
+                        <span style="font-size:12px; opacity:0.9;">${z}</span><br><span>${label}</span>
                         ${extraInfo}
                      </div>`;
         });
