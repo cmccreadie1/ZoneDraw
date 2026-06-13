@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.60</title>
+    <title>ZONEDRAW v12.04.61</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -185,7 +185,7 @@
             background: rgba(79, 70, 229, 0.05); 
         }
 
-        /* V12.04.60 Sleek Card Design */
+        /* Sleek Card Design */
         .zone-card { 
             background: var(--card); 
             border: 1px solid #f1f5f9;
@@ -622,7 +622,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.60</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.61</span></div>
         <div id="saveIndicator" style="position: fixed; top: 15px; right: 20px; background: #4caf50; color: white; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 9999; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✓ SAVED</div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
@@ -1608,6 +1608,11 @@
     }
 
     function runDraw() {
+        // Enforce Strict Processing Priority:
+        // 1. Teams with [A]
+        // 2. Solos with [A]
+        // 3. Teams without [A]
+        // 4. Solos without [A]
         appState.sort((a, b) => {
             let getPriority = (entry) => { 
                 let hasA = accEnabled && entry.anglers.some(ang => ang.mobility); 
@@ -1780,11 +1785,34 @@
                         a.z2 = av2.length > 0 ? av2[0] : a.z1;
                     }
                 } else { 
-                    let av = []; zones.forEach(z => { if (p1[zones.indexOf(z)].p.length > 0) av.push(z); });
-                    if (av.length > 0) a.z1 = av[Math.floor(Math.random() * av.length)]; 
-                    let av2 = []; zones.forEach(z => { if (z !== a.z1 && p2[zones.indexOf(z)].p.length > 0) av2.push(z); });
-                    if (av2.length === 0) zones.forEach(z => { if (p2[zones.indexOf(z)].p.length > 0) av2.push(z); });
-                    if (av2.length > 0) a.z2 = av2[Math.floor(Math.random() * av2.length)]; 
+                    // BALANCED STANDARD SOLO ROUTING
+                    // Day 1 Balancing: Count available pegs, sort descending to find emptiest zone.
+                    let av = []; 
+                    zones.forEach(z => { 
+                        if (p1[zones.indexOf(z)].p.length > 0) av.push({z: z, left: p1[zones.indexOf(z)].p.length}); 
+                    });
+                    if (av.length > 0) {
+                        av.sort((val1, val2) => val2.left - val1.left);
+                        let maxLeft = av[0].left;
+                        let candidates = av.filter(item => item.left === maxLeft).map(item => item.z);
+                        a.z1 = candidates[Math.floor(Math.random() * candidates.length)];
+                    } 
+                    
+                    // Day 2 Balancing: Count available pegs, ensure no Day 1 double zone.
+                    let av2 = []; 
+                    zones.forEach(z => { 
+                        if (z !== a.z1 && p2[zones.indexOf(z)].p.length > 0) av2.push({z: z, left: p2[zones.indexOf(z)].p.length}); 
+                    });
+                    if (av2.length === 0) {
+                        // Failsafe backup
+                        zones.forEach(z => { if (p2[zones.indexOf(z)].p.length > 0) av2.push({z: z, left: p2[zones.indexOf(z)].p.length}); });
+                    }
+                    if (av2.length > 0) {
+                        av2.sort((val1, val2) => val2.left - val1.left);
+                        let maxLeft2 = av2[0].left;
+                        let candidates2 = av2.filter(item => item.left === maxLeft2).map(item => item.z);
+                        a.z2 = candidates2[Math.floor(Math.random() * candidates2.length)];
+                    }
                 }
                 a.p1 = pull(a.z1, 0, hasMobility); a.p2 = pull(a.z2, 1, hasMobility);
             }
