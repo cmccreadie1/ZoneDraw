@@ -2052,8 +2052,8 @@
             let emptyStr = emptyPegs.length > 0 ? emptyPegs.join(', ') : 'NONE';
             let aStr = aPegs.length > 0 ? aPegs.join(', ') : 'NONE';
             
-            // Horizontal layout for extra info
-            let extraInfo = `<span style="font-size:10px; opacity:0.9; white-space:nowrap;">E: ${emptyStr}</span>`;
+            // Horizontal layout for extra info updated to UNUSED
+            let extraInfo = `<span style="font-size:10px; opacity:0.9; white-space:nowrap;">UNUSED: ${emptyStr}</span>`;
             if (accEnabled) {
                 extraInfo += `<span style="font-size:10px; opacity:0.9; white-space:nowrap;">[A]: ${aStr}</span>`;
             }
