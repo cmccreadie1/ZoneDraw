@@ -452,39 +452,41 @@
             color: var(--red-color); 
         }
 
-        /* --- Smart Scroll Sticky Action Bar --- */
+       /* --- Smart Scroll Sticky Action Bar --- */
         .sticky-action-bar {
             position: fixed;
-            bottom: 0;
+            bottom: 15px; /* Floats it slightly off the bottom edge */
             left: 0;
             right: 0;
-            background: white;
-            border-top: 2px solid var(--border);
-            padding: 15px 20px;
+            background: transparent; /* Removes the solid white bar */
+            border-top: none; /* Removes the border line */
+            padding: 0 15px; 
             display: flex;
-            gap: 15px;
+            gap: 12px;
             justify-content: center;
             z-index: 8000;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
-            flex-wrap: wrap;
+            box-shadow: none; /* Removes shadow from the invisible container */
             transform: translateY(0);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none; /* Allows you to click 'through' the empty space */
         }
 
         .sticky-action-bar .btn-master {
+            pointer-events: auto; /* Keeps the buttons themselves clickable */
             flex: 1;
-            max-width: 400px;
+            max-width: 320px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 12px 15px;
+            padding: 8px 10px; /* Reduced vertical padding */
             border-radius: 12px;
-            border: 3px solid;
+            border: 2px solid; /* Thinned the border to save space */
             cursor: pointer;
             transition: 0.2s;
             text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15); /* Adds shadow directly to the buttons so they float */
+            backdrop-filter: blur(10px); /* Optional modern touch if you make button backgrounds slightly transparent later */
         }
 
         .sticky-action-bar .btn-master strong { font-size: 16px; font-weight: 900; letter-spacing: 0.5px; }
