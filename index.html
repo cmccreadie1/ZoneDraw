@@ -185,13 +185,13 @@
             background: rgba(79, 70, 229, 0.05); 
         }
 
-        /* Sleek Card Design */
+        /* Sleek Minimalist Card Design */
         .zone-card { 
             background: var(--card); 
-            border: 1px solid #f1f5f9;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.06);
+            border: 1px solid var(--border); /* Razor-thin, subtle border */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); /* Extremely soft, modern shadow */
             border-radius: 12px; 
-            padding: 0 0 10px 0; 
+            padding: 10px 0; /* Reduced padding to save vertical space */
             position: relative; 
             transition: 0.2s; 
             break-inside: avoid; 
@@ -205,15 +205,15 @@
         }
 
         .zone-header { 
-            font-size: 13px; 
+            font-size: 14px; 
             font-weight: 900; 
-            color: white; 
-            margin: 0 0 10px 0; 
-            padding: 10px 15px; 
+            color: var(--text); /* Changed from white to dark navy */
+            margin: 0 0 8px 0; 
+            padding: 0 15px 8px 15px; 
+            border-bottom: 1px solid var(--border); /* Subtle divider line */
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            transition: 0.2s; 
         }
 
         .res-row { 
@@ -1430,7 +1430,7 @@
             div.dataset.id = entry.id;
             
             let typeStr = entry.isTeam ? 'TEAM' : 'SOLO';
-            let h = `<div class="zone-header" style="background: #475569;"><span>${typeStr}</span><div style="display:flex; align-items:center;">`;
+           let h = `<div class="zone-header"><span>${typeStr}</span><div style="display:flex; align-items:center;">`;
             
             if (!entry.isTeam) h += `<input type="checkbox" class="merge-cb" onchange="checkMerge()" tabindex="-1" style="width:20px; height:20px;">`; 
             if (entry.isTeam) h += `<button class="btn-tool" onclick="breakStateTeam('${entry.id}')" tabindex="-1" style="margin-left:12px;">🔗 UNLINK</button>`; 
@@ -2124,10 +2124,8 @@
         
         appState.forEach(g => {
             const div = document.createElement('div'); div.className = 'zone-card';
-            let fZ = g.anglers[0] && g.anglers[0].z1 ? g.anglers[0].z1 : null;
-            let headerBg = fZ && zColors[fZ] ? zColors[fZ] : '#475569';
             let nameStr = g.tName ? g.tName : 'SOLO';
-            
+            let h = `<div class="zone-header"><span>${nameStr}</span></div>`;
             let h = `<div class="zone-header" style="background:${headerBg};"><span>${nameStr}</span></div>`;
             h += `<div class="res-row" style="font-size:10px; color:#64748b; padding-bottom: 2px;"><span></span><span style="text-align:center;">DAY 1</span><span style="text-align:center;">DAY 2</span></div>`;
             
