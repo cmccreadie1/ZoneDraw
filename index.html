@@ -2052,13 +2052,13 @@
             let emptyStr = emptyPegs.length > 0 ? emptyPegs.join(', ') : 'NONE';
             let aStr = aPegs.length > 0 ? aPegs.join(', ') : 'NONE';
             
-            // Horizontal layout for extra info updated to UNUSED
+            // UNUSED text remains standard, [A] text gets a high-contrast dark badge
             let extraInfo = `<span style="font-size:10px; opacity:0.9; white-space:nowrap;">UNUSED: ${emptyStr}</span>`;
             if (accEnabled) {
-                extraInfo += `<span style="font-size:10px; opacity:0.9; white-space:nowrap;">[A]: ${aStr}</span>`;
+                extraInfo += `<span style="font-size:10px; font-weight:900; background:#0f172a; color:white; padding:2px 6px; border-radius:4px; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.2);">[A]: ${aStr}</span>`;
             }
 
-            // Sleek horizontal pill mirroring the results grid sizing
+            // Sleek horizontal pill
             html += `<div style="flex:1; background:${bg}; border-radius:8px; padding:4px 8px; color:white; font-weight:900; display:flex; flex-direction:row; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; min-height:26px;">
                         <span style="font-size:14px; letter-spacing:0.5px;">${label}</span>
                         ${extraInfo}
