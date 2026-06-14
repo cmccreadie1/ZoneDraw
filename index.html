@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZONEDRAW v12.04.63</title>
+    <title>ZONEDRAW Version 1</title>
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -188,10 +188,10 @@
         /* Sleek Minimalist Card Design */
         .zone-card { 
             background: var(--card); 
-            border: 1px solid var(--border); /* Razor-thin, subtle border */
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03); /* Extremely soft, modern shadow */
+            border: 1px solid var(--border); 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); 
             border-radius: 12px; 
-            padding: 10px 0; /* Reduced padding to save vertical space */
+            padding: 10px 0; 
             position: relative; 
             transition: 0.2s; 
             break-inside: avoid; 
@@ -207,10 +207,10 @@
         .zone-header { 
             font-size: 14px; 
             font-weight: 900; 
-            color: var(--text); /* Changed from white to dark navy */
+            color: var(--text); 
             margin: 0 0 8px 0; 
             padding: 0 15px 8px 15px; 
-            border-bottom: 1px solid var(--border); /* Subtle divider line */
+            border-bottom: 1px solid var(--border); 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
@@ -452,41 +452,41 @@
             color: var(--red-color); 
         }
 
-       /* --- Smart Scroll Sticky Action Bar --- */
+        /* --- Smart Scroll Sticky Action Bar --- */
         .sticky-action-bar {
             position: fixed;
-            bottom: 15px; /* Floats it slightly off the bottom edge */
+            bottom: 15px; 
             left: 0;
             right: 0;
-            background: transparent; /* Removes the solid white bar */
-            border-top: none; /* Removes the border line */
+            background: transparent; 
+            border-top: none; 
             padding: 0 15px; 
             display: flex;
             gap: 12px;
             justify-content: center;
             z-index: 8000;
-            box-shadow: none; /* Removes shadow from the invisible container */
+            box-shadow: none; 
             transform: translateY(0);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            pointer-events: none; /* Allows you to click 'through' the empty space */
+            pointer-events: none; 
         }
 
         .sticky-action-bar .btn-master {
-            pointer-events: auto; /* Keeps the buttons themselves clickable */
+            pointer-events: auto; 
             flex: 1;
             max-width: 320px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 8px 10px; /* Reduced vertical padding */
+            padding: 8px 10px; 
             border-radius: 12px;
-            border: 2px solid; /* Thinned the border to save space */
+            border: 2px solid; 
             cursor: pointer;
             transition: 0.2s;
             text-align: center;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.15); /* Adds shadow directly to the buttons so they float */
-            backdrop-filter: blur(10px); /* Optional modern touch if you make button backgrounds slightly transparent later */
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15); 
+            background: white; 
         }
 
         .sticky-action-bar .btn-master strong { font-size: 16px; font-weight: 900; letter-spacing: 0.5px; }
@@ -522,17 +522,17 @@
             animation: livePulse 1.5s infinite;
             vertical-align: baseline;
             margin-right: 6px;
-            font-size: 14px; /* Hardcoded to perfectly scale alongside the new 20px title */
+            font-size: 14px; 
         }
 
         .group-label { 
             grid-column: 1 / -1; 
-            font-size: 18px; /* Reduced from 1.4rem for a sleeker look */
+            font-size: 18px; 
             font-weight: 900; 
             color: var(--text); 
-            border-bottom: 2px solid var(--text); /* Thinned the underline */
-            padding-bottom: 6px; /* Tightened the gap below the text */
-            margin: 20px 0 12px; /* Slashed the top and bottom margins */
+            border-bottom: 2px solid var(--text); 
+            padding-bottom: 6px; 
+            margin: 20px 0 12px; 
             letter-spacing: 0.5px; 
         }
 
@@ -623,7 +623,7 @@
 
 <div class="fixed-header no-print">
     <div class="header-content">
-        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">v12.04.63</span></div>
+        <div class="brand-name">ZONEDRAW <span id="vTag" class="v-tag">VERSION 1</span></div>
         <div id="saveIndicator" style="position: fixed; top: 15px; right: 20px; background: #4caf50; color: white; padding: 4px 12px; border-radius: 4px; font-weight: 900; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 9999; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✓ SAVED</div>
         <button id="masterResetBtn" onclick="showWipeModal()" class="btn-action-outline" style="border-color:#ef4444; color:#ef4444; padding: 8px 16px; font-size: 11px;">🏁 FINISH & RESET</button>
     </div>
@@ -800,7 +800,7 @@
 
     <h1 id="resTitle" style="text-align:center; font-size:20px; font-weight:900; margin: 0 0 15px; color: var(--text); letter-spacing:-0.5px;"></h1>
     
-    <div id="beachMapContainer" class="no-print" style="margin-bottom: 30px; width: 100%;"></div>
+    <div id="beachMapContainer" class="no-print" style="margin-bottom: 15px; width: 100%;"></div>
 
     <div id="resultsArea">
         <div id="teamsBucketContainer" style="display:none;">
@@ -1043,7 +1043,7 @@
             anchorZone2: document.getElementById('anchorZoneSelect2').value
         };
         
-        localStorage.setItem('zonedraw_current_state_v12', JSON.stringify(stateObj));
+        localStorage.setItem('zonedraw_current_state_v1', JSON.stringify(stateObj));
     }
 
     function formatPegs(el) {
@@ -1226,7 +1226,7 @@
         lnk.click();
         
         isAppReady = false; 
-        localStorage.removeItem('zonedraw_current_state_v12');
+        localStorage.removeItem('zonedraw_current_state_v1');
         closeWipeModal();
         startNewDraw();
         isAppReady = true; 
@@ -1430,7 +1430,7 @@
             div.dataset.id = entry.id;
             
             let typeStr = entry.isTeam ? 'TEAM' : 'SOLO';
-           let h = `<div class="zone-header"><span>${typeStr}</span><div style="display:flex; align-items:center;">`;
+            let h = `<div class="zone-header"><span>${typeStr}</span><div style="display:flex; align-items:center;">`;
             
             if (!entry.isTeam) h += `<input type="checkbox" class="merge-cb" onchange="checkMerge()" tabindex="-1" style="width:20px; height:20px;">`; 
             if (entry.isTeam) h += `<button class="btn-tool" onclick="breakStateTeam('${entry.id}')" tabindex="-1" style="margin-left:12px;">🔗 UNLINK</button>`; 
@@ -2055,7 +2055,6 @@
             let hasEmpty = emptyPegs.length > 0;
             let hasA = accEnabled && aPegs.length > 0;
 
-            // Conditionally render the dark navy badges ONLY if there is data
             if (hasEmpty) {
                 extraInfo += `<span style="font-size:10px; font-weight:900; background:#0f172a; color:white; padding:2px 6px; border-radius:4px; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.2);">E: ${emptyPegs.join(', ')}</span>`;
             }
@@ -2063,7 +2062,6 @@
                 extraInfo += `<span style="font-size:10px; font-weight:900; background:#0f172a; color:white; padding:2px 6px; border-radius:4px; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.2);">[A]: ${aPegs.join(', ')}</span>`;
             }
 
-            // Sleek horizontal pill
             html += `<div style="flex:1; background:${bg}; border-radius:8px; padding:4px 8px; color:white; font-weight:900; display:flex; flex-direction:row; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; min-height:26px;">
                         <span style="font-size:14px; letter-spacing:0.5px;">${label}</span>
                         ${extraInfo}
@@ -2072,7 +2070,8 @@
         html += `</div>`;
         return html;
     }
-   function displayDraw() {
+
+    function displayDraw() {
         document.querySelectorAll('body > div[id$="Section"]').forEach(s => s.style.display = 'none');
         document.getElementById('resultsSection').style.display = 'block';
         
@@ -2092,7 +2091,6 @@
 
         let mapHtml = '';
         
-        // Master Legend - Clean, top-centered key
         let masterLegend = `E = EMPTY PEG`;
         if (accEnabled) masterLegend += ` <span style="margin: 0 8px; opacity:0.5;">|</span> [A] = EASY ACCESS`;
         mapHtml += `<div style="font-size:11px; font-weight:900; color:#64748b; text-align:center; margin-bottom:12px;">${masterLegend}</div>`;
@@ -2108,7 +2106,7 @@
         
         const beachContainer = document.getElementById('beachMapContainer');
         beachContainer.innerHTML = mapHtml;
-        beachContainer.style.marginBottom = '15px'; // Aggressively tightens the gap above the team cards
+        beachContainer.style.marginBottom = '15px'; 
 
         const validation = runValidator(); 
         const banner = document.getElementById('anomalyBanner'); 
@@ -2124,9 +2122,9 @@
         
         appState.forEach(g => {
             const div = document.createElement('div'); div.className = 'zone-card';
+            
             let nameStr = g.tName ? g.tName : 'SOLO';
             let h = `<div class="zone-header"><span>${nameStr}</span></div>`;
-            let h = `<div class="zone-header" style="background:${headerBg};"><span>${nameStr}</span></div>`;
             h += `<div class="res-row" style="font-size:10px; color:#64748b; padding-bottom: 2px;"><span></span><span style="text-align:center;">DAY 1</span><span style="text-align:center;">DAY 2</span></div>`;
             
             g.anglers.forEach((a, aI) => {
@@ -2306,7 +2304,7 @@
 
     window.onload = () => {
         isAppReady = false; 
-        let saved = localStorage.getItem('zonedraw_current_state_v12');
+        let saved = localStorage.getItem('zonedraw_current_state_v1');
         if (saved) {
             let e = JSON.parse(saved); 
             document.getElementById('matchTitle').value = e.title || '';
