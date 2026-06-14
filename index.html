@@ -2017,7 +2017,7 @@
     }
 
     function buildBeachMap(day, s) {
-        let html = `<div style="display:flex; width:100%; gap:8px; margin-bottom: 8px;">`;
+        let html = `<div style="display:flex; width:100%; gap:8px; margin-bottom: 12px;">`;
         zones.forEach((z, idx) => {
             let baseMax = (idx + 1) * s;
             let baseMin = (idx * s) + 1;
@@ -2052,16 +2052,15 @@
             let emptyStr = emptyPegs.length > 0 ? emptyPegs.join(', ') : 'NONE';
             let aStr = aPegs.length > 0 ? aPegs.join(', ') : 'NONE';
             
-            // Clean text formatting without shaded backgrounds
-            let extraInfo = `<span style="font-size:10px; opacity:0.9;">EMPTY: ${emptyStr}</span>`;
+            // Horizontal layout for extra info
+            let extraInfo = `<span style="font-size:10px; opacity:0.9; white-space:nowrap;">E: ${emptyStr}</span>`;
             if (accEnabled) {
-                extraInfo += `<span style="font-size:10px; opacity:0.9; margin-top:2px;">[A] PEGS: ${aStr}</span>`;
+                extraInfo += `<span style="font-size:10px; opacity:0.9; white-space:nowrap;">[A]: ${aStr}</span>`;
             }
 
-            // Sleek, individual flat pills with perfectly spaced text
-            html += `<div style="flex:1; background:${bg}; border-radius:12px; padding:8px 4px; text-align:center; color:white; font-weight:900; display:flex; flex-direction:column; justify-content:center; align-items:center; line-height:1.2;">
-                        <span style="font-size:11px; letter-spacing:0.5px; opacity:0.9;">${z}</span>
-                        <span style="font-size:16px; margin:3px 0;">${label}</span>
+            // Sleek horizontal pill mirroring the results grid sizing
+            html += `<div style="flex:1; background:${bg}; border-radius:8px; padding:4px 8px; color:white; font-weight:900; display:flex; flex-direction:row; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; min-height:26px;">
+                        <span style="font-size:14px; letter-spacing:0.5px;">${label}</span>
                         ${extraInfo}
                      </div>`;
         });
