@@ -2017,7 +2017,7 @@
     }
 
     function buildBeachMap(day, s) {
-        let html = `<div style="display:flex; width:100%; gap:8px; margin-bottom: 12px;">`;
+        let html = `<div style="display:flex; width:100%; gap:8px; margin-bottom: 6px;">`;
         zones.forEach((z, idx) => {
             let baseMax = (idx + 1) * s;
             let baseMin = (idx * s) + 1;
@@ -2049,13 +2049,17 @@
             
             let bg = zColors[z];
             let label = highestAlpha ? `${baseMin}-${baseMax} + ${baseMax}${highestAlpha}` : `${baseMin}-${baseMax}`;
-            let emptyStr = emptyPegs.length > 0 ? emptyPegs.join(', ') : 'NONE';
-            let aStr = aPegs.length > 0 ? aPegs.join(', ') : 'NONE';
             
-            // UNUSED text remains standard, [A] text gets a high-contrast dark badge
-            let extraInfo = `<span style="font-size:10px; opacity:0.9; white-space:nowrap;">UNUSED: ${emptyStr}</span>`;
-            if (accEnabled) {
-                extraInfo += `<span style="font-size:10px; font-weight:900; background:#0f172a; color:white; padding:2px 6px; border-radius:4px; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.2);">[A]: ${aStr}</span>`;
+            let extraInfo = '';
+            let hasEmpty = emptyPegs.length > 0;
+            let hasA = accEnabled && aPegs.length > 0;
+
+            // Conditionally render the dark navy badges ONLY if there is data
+            if (hasEmpty) {
+                extraInfo += `<span style="font-size:10px; font-weight:900; background:#0f172a; color:white; padding:2px 6px; border-radius:4px; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.2);">E: ${emptyPegs.join(', ')}</span>`;
+            }
+            if (hasA) {
+                extraInfo += `<span style="font-size:10px; font-weight:900; background:#0f172a; color:white; padding:2px 6px; border-radius:4px; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.2);">[A]: ${aPegs.join(', ')}</span>`;
             }
 
             // Sleek horizontal pill
@@ -2067,8 +2071,7 @@
         html += `</div>`;
         return html;
     }
-
-    function displayDraw() {
+   function displayDraw() {
         document.querySelectorAll('body > div[id$="Section"]').forEach(s => s.style.display = 'none');
         document.getElementById('resultsSection').style.display = 'block';
         
@@ -2087,15 +2090,24 @@
         const s = currentZoneSize;
 
         let mapHtml = '';
+        
+        // Master Legend - Clean, top-centered key
+        let masterLegend = `E = EMPTY PEG`;
+        if (accEnabled) masterLegend += ` <span style="margin: 0 8px; opacity:0.5;">|</span> [A] = EASY ACCESS`;
+        mapHtml += `<div style="font-size:11px; font-weight:900; color:#64748b; text-align:center; margin-bottom:12px;">${masterLegend}</div>`;
+
         if (matchDays >= 1) {
-            mapHtml += `<div style="font-size:10px; font-weight:900; color:#64748b; margin-left: 5px; margin-bottom:2px;">DAY 1 SHORELINE</div>`;
+            mapHtml += `<div style="font-size:14px; font-weight:900; color:var(--text); margin-left: 5px; margin-bottom:4px;">DAY 1</div>`;
             mapHtml += buildBeachMap(1, s);
         }
         if (matchDays === 2) {
-            mapHtml += `<div style="font-size:10px; font-weight:900; color:#64748b; margin-left: 5px; margin-bottom:2px;">DAY 2 SHORELINE</div>`;
+            mapHtml += `<div style="font-size:14px; font-weight:900; color:var(--text); margin-left: 5px; margin-bottom:4px; margin-top:8px;">DAY 2</div>`;
             mapHtml += buildBeachMap(2, s);
         }
-        document.getElementById('beachMapContainer').innerHTML = mapHtml;
+        
+        const beachContainer = document.getElementById('beachMapContainer');
+        beachContainer.innerHTML = mapHtml;
+        beachContainer.style.marginBottom = '15px'; // Aggressively tightens the gap above the team cards
 
         const validation = runValidator(); 
         const banner = document.getElementById('anomalyBanner'); 
